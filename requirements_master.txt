@@ -1,0 +1,14 @@
+#progress bar 
+tqdm 
+#audio analysis 
+librosa 
+#movie editor 
+moviepy
+#pytorch 
+torch 
+#scipy 1.1.0 
+scipy==1.1.0 
+#biggan 
+pytorch_pretrained_biggan 
+#Flask
+flask
