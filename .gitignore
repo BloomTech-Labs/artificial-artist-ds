@@ -4,3 +4,10 @@
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 .ebignore/*
+
+#environment file
+.env
+
+#pip files
+Pipfile
+Pipfile.lock
