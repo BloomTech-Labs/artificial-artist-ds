@@ -1,8 +1,9 @@
+import os
+import requests
 from flask import Flask
 from flask import request
-import requests
-from .Model import visualize
-
+from pydub import AudioSegment
+from visualize import song_analysis, generate_images, save_video
 
 application = Flask(__name__)
 
@@ -18,7 +19,13 @@ def visual():
 	title = request.args.get('title_short')
 
 	song = requests.get(url)
-	open('song.mp3', 'wb').write(song.content)
+	open("song.mp3", 'wb').write(song.content)
+		
+	noise_vectors, class_vectors = song_analysis("song.mp3")
+
+	frames = generate_images(noise_vectors, class_vectors)
+
+	save_video(frames, "song.mp3")
 
 	return "unit-test"
 

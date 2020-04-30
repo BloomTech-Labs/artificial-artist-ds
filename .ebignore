@@ -1,4 +1,5 @@
 Pipfile
 Pipfile.lock
 .gitignore
+.git
 .env

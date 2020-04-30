@@ -1,4 +1,5 @@
 import librosa
+import argparse
 import numpy as np
 import moviepy.editor as mpy
 import random
@@ -133,7 +134,7 @@ def normalize_cv(cv2):
 def song_analysis(song = None, num_classes = 4, classes = None, truncation = 0.5, jitter = 0.5, depth = 1):
     """
     Inputs:
-        song: path of 30 second mp3 file
+        song: 30 second mp3 file
         num_classes: INT of how many classes should appear
         classes: LIST of classes by index from ImageNet, leave as None for random classes
         truncation: FLOAT 0 to 1
@@ -221,7 +222,7 @@ def song_analysis(song = None, num_classes = 4, classes = None, truncation = 0.5
         nv1=nvlast
 
         #set noise vector update based on direction, sensitivity, jitter, and combination of overall power and gradient of power
-        update = np.array([sensitivity_tempo() for k in range(128)]) * (gradm[i]+specm[i]) * update_dir * jitters 
+        update = np.array([tempo_sensitivity for k in range(128)]) * (gradm[i]+specm[i]) * update_dir * jitters 
         
         #smooth the update with the previous update (to avoid overly sharp frame transitions)
         update=(update+update_last*3)/4
@@ -248,8 +249,7 @@ def song_analysis(song = None, num_classes = 4, classes = None, truncation = 0.5
         cv2=np.zeros(1000)
         for j in range(num_classes):
             
-            cv2[classes[j]] = (cvlast[classes[j]] + 
-                            ((chroma[chromasort[j]][i])/(sensitivity_pitch())))/(1+(1/((sensitivity_pitch()))))
+            cv2[classes[j]] = (cvlast[classes[j]] + ((chroma[chromasort[j]][i])/(pitch_sensitivity)))/(1+(1/((pitch_sensitivity))))
 
         #if more than 6 classes, normalize new class vector between 0 and 1, else simply set max class val to 1
         if num_classes > 6:
@@ -282,7 +282,7 @@ def song_analysis(song = None, num_classes = 4, classes = None, truncation = 0.5
     return noise_vectors, class_vectors
 
 
-def generate_images(noise_vectors, class_vectors, truncation = 0.5):
+def generate_images(noise_vectors, class_vectors):
     """
     Take vectors from song_analysis and generate images
 
@@ -296,8 +296,7 @@ def generate_images(noise_vectors, class_vectors, truncation = 0.5):
     print('\n\nGenerating frames \n')
 
     #send to CUDA if running on GPU
-    model = model_resolution()
-    model = model.to(device)
+    model=model_resolution().to(device)
     noise_vectors=noise_vectors.to(device)
     class_vectors=class_vectors.to(device)
 
@@ -347,6 +346,5 @@ def save_video(frames, song):
 
     clip = mpy.ImageSequenceClip(frames, fps=22050/frame_length)
     clip = clip.set_audio(aud)
-    clip.write_videofile(outname,audio_codec='aac')
     
-    return 'Finished'
+    return clip.write_videofile(outname,audio_codec='aac')
