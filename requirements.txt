@@ -1,6 +1,5 @@
 #progress bar 
 tqdm
-Cython
 #audio analysis 
 librosa
 #movie editor 
