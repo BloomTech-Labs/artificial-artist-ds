@@ -9,20 +9,20 @@ from pytorch_pretrained_biggan import (BigGAN, one_hot_from_names, truncated_noi
                                        save_as_images, display_in_terminal)
 
 #set model based on resolution
-def model_resolution(resolution=128):
+def model_resolution(resolution = '128'):
     """
     set model's resolution, default 128
 
     """
     model_name='biggan-deep-' + resolution
-    model = BigGAN.from_pretrained(model_resolution())
+    model = BigGAN.from_pretrained(model_name)
 
     return model
 
 
-def song_duration(duration=30):
+def song_duration(duration = 30):
     """
-    Song duration in seconds, returns 
+    Song duration in seconds, returns fram_lim
 
     """
     seconds=duration
@@ -55,8 +55,9 @@ def sensitivity_tempo(tempo_sensitivity=0.25):
 
     return tempo_sensitivity
 
+truncation = 0.5
 
-frame_length = 512 # can reduce this number to make clearer images or increase to reduce computational load
+frame_length = 256 # can reduce this number to make clearer images or increase to reduce computational load
 
 #set batch size  
 batch_size=32
@@ -93,10 +94,10 @@ def new_jitters(jitter):
 #get new update directions
 def new_update_dir(nv2,update_dir):
     for ni,n in enumerate(nv2):                  
-        if n >= 2*truncation - tempo_sensitivity:
+        if n >= 2*truncation - sensitivity_tempo():
             update_dir[ni] = -1  
                         
-        elif n < -2*truncation + tempo_sensitivity:
+        elif n < -2*truncation + sensitivity_tempo():
             update_dir[ni] = 1   
     return update_dir
 
@@ -130,7 +131,7 @@ def normalize_cv(cv2):
     
     return cv2
 
-def song_analysis(song = None, num_classes = 4, classes = None, truncation = 0.5, jitter = 0.5, depth = 1):
+def song_analysis(song = None, classes = None, jitter = 0.5, depth = 1):
     """
     Inputs:
         song: path of 30 second mp3 file
@@ -173,6 +174,8 @@ def song_analysis(song = None, num_classes = 4, classes = None, truncation = 0.5
         cls1000=list(range(1000))
         random.shuffle(cls1000)
         classes=cls1000[:4]
+
+    num_classes = len(classes)
 
     print('\nGenerating input vectors \n')
 
@@ -277,26 +280,24 @@ def song_analysis(song = None, num_classes = 4, classes = None, truncation = 0.5
     np.save('class_vectors.npy',class_vectors)
     np.save('noise_vectors.npy',noise_vectors)
 
-    print('vectors saved')        
-
     return noise_vectors, class_vectors
 
 
-def generate_images(noise_vectors, class_vectors, truncation = 0.5):
+def generate_images(noise_vectors, class_vectors):
     """
     Take vectors from song_analysis and generate images
 
     """
-    
     #convert to Tensor
     noise_vectors = torch.Tensor(np.array(noise_vectors))      
     class_vectors = torch.Tensor(np.array(class_vectors))      
 
     #Generate frames in batches of batch_size
-    print('\n\nGenerating frames \n')
+
+    #initialize bigGAN model
+    model = model_resolution()
 
     #send to CUDA if running on GPU
-    model = model_resolution()
     model = model.to(device)
     noise_vectors=noise_vectors.to(device)
     class_vectors=class_vectors.to(device)
@@ -316,22 +317,18 @@ def generate_images(noise_vectors, class_vectors, truncation = 0.5):
         noise_vector=noise_vectors[i*batch_size:(i+1)*batch_size]
         class_vector=class_vectors[i*batch_size:(i+1)*batch_size]
 
-        print('vectors transformed')
+        with torch.no_grad():
+            output = model(noise_vector, class_vector, truncation)
 
-    with torch.no_grad():
-        output = model(noise_vector, class_vector, truncation)
+        output_cpu=output.cpu().data.numpy()
 
-    output_cpu=output.cpu().data.numpy()
-
-    #convert to image array and add to frames
-    for out in output_cpu:    
-        im=np.array(toimage(out))
-        frames.append(im)
-                
-    #empty cuda cache
-    torch.cuda.empty_cache()
-
-    print('Images generated')
+        #convert to image array and add to frames
+        for out in output_cpu:    
+            im=np.array(toimage(out))
+            frames.append(im)
+                    
+        #empty cuda cache
+        torch.cuda.empty_cache()
 
     return frames
 
@@ -343,7 +340,8 @@ def save_video(frames, song):
     Output: created video in mp4 format
 
     """
-    aud = mpy.AudioFileClip(song, fps = 44100) 
+    aud = mpy.AudioFileClip(song, fps = 44100)
+    aud.duration = 30
 
     clip = mpy.ImageSequenceClip(frames, fps=22050/frame_length)
     clip = clip.set_audio(aud)

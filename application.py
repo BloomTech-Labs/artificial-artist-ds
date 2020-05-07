@@ -2,7 +2,6 @@ import os
 import requests
 from flask import Flask
 from flask import request
-from pydub import AudioSegment
 from visualize import song_analysis, generate_images, save_video
 
 application = Flask(__name__)
@@ -27,7 +26,7 @@ def visual():
 
 	save_video(frames, "song.mp3")
 
-	return "unit-test"
+	return open("random.mp4", 'r')
 
 	#download user input--cache data???
 	#feed downloaded song into visualizer
