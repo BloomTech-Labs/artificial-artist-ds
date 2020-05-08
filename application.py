@@ -6,7 +6,7 @@ from flask_cors import CORS
 from visualize import song_analysis, generate_images, save_video
 
 application = Flask(__name__)
-CORS(app)
+CORS(application)
 
 @application.route('/')
 def root():
