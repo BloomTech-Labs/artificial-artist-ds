@@ -2,9 +2,11 @@ import os
 import requests
 from flask import Flask
 from flask import request
+from flask_cors import CORS
 from visualize import song_analysis, generate_images, save_video
 
 application = Flask(__name__)
+CORS(app)
 
 @application.route('/')
 def root():

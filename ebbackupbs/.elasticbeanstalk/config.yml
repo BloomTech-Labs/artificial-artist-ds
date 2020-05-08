@@ -1,0 +1,28 @@
+branch-defaults:
+  Model-test:
+    environment: null
+    group_suffix: null
+environment-defaults:
+  DS-test:
+    branch: null
+    repository: null
+  Flask:
+    branch: null
+    repository: null
+  sagemaker-reqs:
+    branch: null
+    repository: null
+global:
+  application_name: work-damn-you
+  branch: null
+  default_ec2_keyname: null
+  default_platform: Python 3.6
+  default_region: us-east-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: eb-cli
+  repository: null
+  sc: git
+  workspace_type: Application
