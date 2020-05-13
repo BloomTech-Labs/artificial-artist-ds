@@ -1,16 +1,15 @@
-#progress bar 
+gunicorn
 tqdm
-#audio analysis 
-librosa
-#movie editor 
+llvmlite
 moviepy
-#pytorch 
+imageio-ffmpeg
+ffmpeg-python
+SoundFile
 torch
 torchvision
-#scipy 1.1.0 
 scipy==1.1.0 
-#biggan 
 pytorch_pretrained_biggan
 Flask
 flask-cors
 requests
+librosa

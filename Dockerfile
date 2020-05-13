@@ -1,18 +1,38 @@
-from python:3.6
+FROM ubuntu:18.04
 
-Run pip3 install --upgrade pip \
-&& apt-get update \
-&& apt-get install ffmpeg -y \
-&& apt-get install libsndfile1 -y
+RUN adduser --disabled-password --gecos '' api-user
 
-WORKDIR /artificial-artist-ds
+RUN apt-get update && yes|apt-get upgrade \
+&& apt-get install -y wget bzip2 \
+&& wget https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh \
+&& bash Anaconda3-5.0.1-Linux-x86_64.sh -b \
+&& rm Anaconda3-5.0.1-Linux-x86_64.sh# Set path to conda
 
-COPY . /artificial-artist-ds
+ENV PATH /root/anaconda3/bin:$PATH
 
-RUN pip3 --no-cache-dir install --ignore-installed -r requirements.txt
+RUN conda update conda \
+&& conda update anaconda \
+&& conda install -c numba numba \
+&& conda install -c conda-forge ffmpeg \
+&& conda install -c conda-forge librosa \
+&& conda update --all
 
-EXPOSE 5000
+# Add and install Python modules
+ADD requirements.txt /src/requirements.txt
 
-ENTRYPOINT ["python3"]
+RUN pip install --upgrade pip \
+&& cd /src; pip install -r requirements.txt
 
-CMD ["application.py"] 
+RUN chmod +x run.sh \
+&& chown -R api-user:api-user ./	
+
+USER api-user
+
+# Bundle app source
+ADD . /src
+
+# Expose
+EXPOSE  5000
+
+# Run
+CMD ["bash", "/src/run.sh"]

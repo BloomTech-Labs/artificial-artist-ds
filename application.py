@@ -5,37 +5,31 @@ from flask import request
 from flask_cors import CORS
 from visualize import song_analysis, generate_images, save_video
 
-application = Flask(__name__)
-CORS(application)
+def create_app():
+	application = Flask(__name__)
+	CORS(application)
 
-@application.route('/')
-def root():
-	return "hello world"
+	@application.route('/')
+	def root():
+		return "hello world"
 
-# get user input
-@application.route('/visualize')
-def visual():
-	url = request.args.get('preview')
-	artist = request.args.get('artist')
-	title = request.args.get('title_short')
+	# get user input
+	@application.route('/visualize', methods=['GET', 'POST'])
+	def visual():
+		url = request.args.get('preview')
+		artist = request.args.get('artist')
+		title = request.args.get('title_short')
 
-	song = requests.get(url)
-	open("song.mp3", 'wb').write(song.content)
-		
-	noise_vectors, class_vectors = song_analysis("song.mp3")
+		song = requests.get(url)
+		open("song.mp3", 'wb').write(song.content)
+			
+		noise_vectors, class_vectors = song_analysis("song.mp3")
 
-	frames = generate_images(noise_vectors, class_vectors)
+		frames = generate_images(noise_vectors, class_vectors)
 
-	save_video(frames, "song.mp3")
+		save_video(frames, "song.mp3")
 
-	return open("random.mp4", 'r')
-
-	#download user input--cache data???
-	#feed downloaded song into visualizer
-
-if __name__ == "__main__":
-    # Setting debug to True enables debug output. This line should be
-    # removed before deploying a production app.
-    application.run()	
-
-
+		return 'It worked!'
+		#download user input--cache data???
+		#feed downloaded song into visualizer
+	return application
