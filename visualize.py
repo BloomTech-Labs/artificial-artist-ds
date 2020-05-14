@@ -65,9 +65,6 @@ batch_size=32
 #set use_previous_classes
 # use_previous_vectors=0  # can be changed to 1 if there are mp3 vector analysis available to use
     
-#set output name
-outname = "random.mp4"
-
 #set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -333,7 +330,7 @@ def generate_images(noise_vectors, class_vectors):
     return frames
 
 #Save video  
-def save_video(frames, song):
+def save_video(frames, song, outname):
     """
     Input: frames from generating function, and song mp3
 
@@ -345,6 +342,5 @@ def save_video(frames, song):
 
     clip = mpy.ImageSequenceClip(frames, fps=22050/frame_length)
     clip = clip.set_audio(aud)
-    clip.write_videofile(outname,audio_codec='aac')
-    
-    return 'Finished'
+        
+    return clip.write_videofile(outname+".mp3", audio_codec='aac')

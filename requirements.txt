@@ -12,4 +12,5 @@ scipy==1.1.0
 pytorch_pretrained_biggan
 Flask
 flask-cors
+flask-s3
 requests
