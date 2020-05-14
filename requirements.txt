@@ -1,6 +1,7 @@
 gunicorn
 tqdm
 llvmlite
+numba==0.43.0
 moviepy
 imageio-ffmpeg
 ffmpeg-python
@@ -12,4 +13,3 @@ pytorch_pretrained_biggan
 Flask
 flask-cors
 requests
-librosa

@@ -1,38 +1,30 @@
-FROM ubuntu:18.04
+FROM continuumio/miniconda3
+
+WORKDIR /app
+COPY . /app
+
+# install package dependencies
+RUN conda update conda \
+&& conda install python=3.6 -y
+
+ENV PATH /opt/conda/envs/env/bin:$PATH
 
 RUN adduser --disabled-password --gecos '' api-user
 
-RUN apt-get update && yes|apt-get upgrade \
-&& apt-get install -y wget bzip2 \
-&& wget https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh \
-&& bash Anaconda3-5.0.1-Linux-x86_64.sh -b \
-&& rm Anaconda3-5.0.1-Linux-x86_64.sh# Set path to conda
+RUN conda install -c conda-forge -y \
+    ffmpeg \
+    librosa \
+&& apt-get install libsndfile1 -y
 
-ENV PATH /root/anaconda3/bin:$PATH
-
-RUN conda update conda \
-&& conda update anaconda \
-&& conda install -c numba numba \
-&& conda install -c conda-forge ffmpeg \
-&& conda install -c conda-forge librosa \
-&& conda update --all
-
-# Add and install Python modules
-ADD requirements.txt /src/requirements.txt
-
-RUN pip install --upgrade pip \
-&& cd /src; pip install -r requirements.txt
+RUN pip install -r /app/requirements.txt
 
 RUN chmod +x run.sh \
 && chown -R api-user:api-user ./	
 
 USER api-user
 
-# Bundle app source
-ADD . /src
-
 # Expose
 EXPOSE  5000
 
 # Run
-CMD ["bash", "/src/run.sh"]
+CMD ["bash", "/app/run.sh"]
