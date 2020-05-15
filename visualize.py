@@ -7,6 +7,10 @@ from scipy.misc import toimage
 from tqdm import tqdm
 from pytorch_pretrained_biggan import (BigGAN, one_hot_from_names, truncated_noise_sample,
                                        save_as_images, display_in_terminal)
+import boto3
+from botocore.exceptions import ClientError
+import logging
+from config import *
 
 #set model based on resolution
 def model_resolution(resolution = '128'):
@@ -57,7 +61,7 @@ def sensitivity_tempo(tempo_sensitivity=0.25):
 
 truncation = 0.5
 
-frame_length = 256 # can reduce this number to make clearer images or increase to reduce computational load
+frame_length = 1024 # can reduce this number to make clearer images or increase to reduce computational load
 
 #set batch size  
 batch_size=32
@@ -329,6 +333,34 @@ def generate_images(noise_vectors, class_vectors):
 
     return frames
 
+def upload_file_to_s3(file, bucket_name=S3_BUCKET, acl="public-read"):
+
+    S3_LOCATION = 'https://{}.s3.amazonaws.com/'.format(bucket_name)
+    
+    s3 = boto3.client(
+       "s3",
+       aws_access_key_id=S3_KEY,
+       aws_secret_access_key=S3_SECRET
+    )
+    
+    try:
+        with open(file, "rb") as f:
+            s3.upload_fileobj(
+                f,
+                bucket_name,
+                file,
+                ExtraArgs={
+                    "ACL": acl,
+                    "ContentType": "video/mp4"
+                }
+            )
+
+    except ClientError as e:
+        logging.error(e)
+        return "error uploading"
+
+    return str("{}{}".format(S3_LOCATION, file))
+
 #Save video  
 def save_video(frames, song, outname):
     """
@@ -342,5 +374,8 @@ def save_video(frames, song, outname):
 
     clip = mpy.ImageSequenceClip(frames, fps=22050/frame_length)
     clip = clip.set_audio(aud)
+    clip.write_videofile(outname+".mp4", audio_codec='aac')
+
+    s3_url = upload_file_to_s3(outname+".mp4")
         
-    return clip.write_videofile(outname+".mp3", audio_codec='aac')
+    return s3_url

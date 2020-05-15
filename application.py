@@ -1,16 +1,12 @@
 import os
 import requests
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_s3 import FlaskS3
 from visualize import song_analysis, generate_images, save_video
-
-s3 = FlaskS3()
 
 def create_app():
 	application = Flask(__name__)
 	CORS(application)
-	s3.init_app(app)
 
 	@application.route('/')
 	def root():
@@ -29,9 +25,10 @@ def create_app():
 
 		frames = generate_images(noise_vectors, class_vectors)
 
-		save_video(frames, "song.mp3", video_id)
+		s3_url = save_video(frames, "song.mp3", video_id)
 
-		return "It worked!"
+		return jsonify(video_url=s3_url, video_id=video_id)
+
 		#download user input--cache data???
 		#feed downloaded song into visualizer
 	return application
