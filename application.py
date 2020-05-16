@@ -12,7 +12,6 @@ def create_app():
 	def root():
 		return "hello world"
 
-	# get user input
 	@application.route('/visualize', methods=['GET', 'POST'])
 	def visual():
 		url = request.args.get('preview')
@@ -29,6 +28,4 @@ def create_app():
 
 		return jsonify(video_url=s3_url, video_id=video_id)
 
-		#download user input--cache data???
-		#feed downloaded song into visualizer
 	return application

@@ -16,6 +16,8 @@ from config import *
 def model_resolution(resolution = '128'):
     """
     set model's resolution, default 128
+    128, 256, or 512 
+    lower = faster generation, lower quality.
 
     """
     model_name='biggan-deep-' + resolution
@@ -27,6 +29,7 @@ def model_resolution(resolution = '128'):
 def song_duration(duration = 30):
     """
     Song duration in seconds, returns fram_lim
+    default = 30 seconds
 
     """
     seconds=duration
@@ -41,6 +44,7 @@ def sensitivity_pitch(pitch_sensitivity=220):
     INT
     Set how quickly images move according to pitch
     Default 220
+    Recommended range: 200 – 295
 
     """
     pitch_sensitivity=(300-pitch_sensitivity) * 512 / frame_length
@@ -54,26 +58,42 @@ def sensitivity_tempo(tempo_sensitivity=0.25):
     FLOAT between 0 and 1
     Set how quickly images morph due to tempo
     Default 0.25
+    Recommended range: 0.05 – 0.8
+
     """
     tempo_sensitivity = tempo_sensitivity * frame_length / 512
 
     return tempo_sensitivity
 
+#how much the image morphs between frames
+#default .5
+#recommended range: 0.05 – 0.8
 truncation = 0.5
 
-frame_length = 1024 # can reduce this number to make clearer images or increase to reduce computational load
+#can reduce this number to make clearer images or increase to reduce computational load
+#default: 512
+#range: multiples of 64
+frame_length = 512
 
-#set batch size  
+#BigGAN generates the images in batches of size [batch_size].
+#default 32
+#only reason to lower this is if you run out of cuda memory. will take slightly longer.  
 batch_size=32
-
-#set use_previous_classes
-# use_previous_vectors=0  # can be changed to 1 if there are mp3 vector analysis available to use
-    
+ 
 #set device
+#use cuda or face a generation time in the hours. You have been warned.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #set smooth factor
 def smooth_factor(smooth_factor=20):
+    """
+    int > 0
+    smooths the class vectors to prevent small fluctuations in pitch from causing the frames to go back and forth
+    default 20
+    recommended range: 10 – 30
+    ***Possibly change this to a variable.***
+
+    """
     if smooth_factor > 1:
         smooth_factor=int(smooth_factor * 512 / frame_length)
     else:
@@ -83,6 +103,10 @@ def smooth_factor(smooth_factor=20):
 
 #get new jitters
 def new_jitters(jitter):
+    """
+    update jitter vector every 100 frames by setting ~half of noise vector units to lower sensitivity
+
+    """
     jitters=np.zeros(128)
     for j in range(128):
         if random.uniform(0,1)<0.5:
@@ -94,6 +118,10 @@ def new_jitters(jitter):
 
 #get new update directions
 def new_update_dir(nv2,update_dir):
+    """
+    changes the direction of the noise vector
+
+    """
     for ni,n in enumerate(nv2):                  
         if n >= 2*truncation - sensitivity_tempo():
             update_dir[ni] = -1  
@@ -132,18 +160,18 @@ def normalize_cv(cv2):
     
     return cv2
 
+#creates the class and noise vectors files
 def song_analysis(song = None, classes = None, jitter = 0.5, depth = 1):
     """
     Inputs:
         song: path of 30 second mp3 file
-        num_classes: INT of how many classes should appear
-        classes: LIST of classes by index from ImageNet, leave as None for random classes
-        truncation: FLOAT 0 to 1
+        classes: LIST of classes by index from ImageNet, leave as None for four random classes -max 12 classes
         jitter: FLOAT 0 to 1
         depth: FLOAT 0 to 1
 
     """
     #read song: audio waveform and sampling rate saved
+    #y = time, sr = sample rate
     y, sr = librosa.load(song)
 
     #create spectrogram
@@ -170,8 +198,8 @@ def song_analysis(song = None, classes = None, jitter = 0.5, depth = 1):
     #sort pitches by overall power 
     chromasort=np.argsort(np.mean(chroma,axis=1))[::-1]
 
+    #select 4 random classes if no classes given.
     if classes==None:
-        #select 4 random classes
         cls1000=list(range(1000))
         random.shuffle(cls1000)
         classes=cls1000[:4]
@@ -217,7 +245,6 @@ def song_analysis(song = None, classes = None, jitter = 0.5, depth = 1):
         #print progress
         pass
 
-        #update jitter vector every 100 frames by setting ~half of noise vector units to lower sensitivity
         if i%200==0:
             jitters=new_jitters(jitter)
 
@@ -293,12 +320,10 @@ def generate_images(noise_vectors, class_vectors):
     noise_vectors = torch.Tensor(np.array(noise_vectors))      
     class_vectors = torch.Tensor(np.array(class_vectors))      
 
-    #Generate frames in batches of batch_size
-
     #initialize bigGAN model
     model = model_resolution()
 
-    #send to CUDA if running on GPU
+    #send to CUDA if running on GPU - YOU SHOULD REALLY DO THIS
     model = model.to(device)
     noise_vectors=noise_vectors.to(device)
     class_vectors=class_vectors.to(device)
@@ -321,6 +346,8 @@ def generate_images(noise_vectors, class_vectors):
         with torch.no_grad():
             output = model(noise_vector, class_vector, truncation)
 
+        #this is bad, why are you using your cpu?
+        #may fail to generate if using cpu :'(
         output_cpu=output.cpu().data.numpy()
 
         #convert to image array and add to frames

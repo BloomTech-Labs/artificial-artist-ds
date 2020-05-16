@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . /app
 
-# install package dependencies
+# install package dependencies that can't be pip installed
 RUN conda update conda \
 && conda install python=3.6 -y \
 && conda install -c conda-forge -y \
@@ -22,7 +22,6 @@ RUN adduser --disabled-password --gecos '' api-user \
 
 USER api-user
 
-# Expose
 EXPOSE  5000
 
 # Run
