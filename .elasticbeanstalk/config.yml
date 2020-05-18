@@ -1,6 +1,6 @@
 branch-defaults:
   Model-test:
-    environment: Flask-container7
+    environment: sample
     group_suffix: null
 environment-defaults:
   DS-test:
@@ -13,6 +13,9 @@ environment-defaults:
     branch: null
     repository: null
   Flask-container7:
+    branch: null
+    repository: null
+  Sample:
     branch: null
     repository: null
   docker:

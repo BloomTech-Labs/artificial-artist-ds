@@ -199,10 +199,10 @@ def song_analysis(song = None, classes = None, jitter = 0.5, depth = 1):
     chromasort=np.argsort(np.mean(chroma,axis=1))[::-1]
 
     #select 4 random classes if no classes given.
-    if classes==None:
-        cls1000=list(range(1000))
+    if classes == None:
+        cls1000 = list(range(1000))
         random.shuffle(cls1000)
-        classes=cls1000[:4]
+        classes = cls1000[:4]
 
     num_classes = len(classes)
 

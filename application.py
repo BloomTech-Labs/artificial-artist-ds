@@ -1,6 +1,6 @@
 import os
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from visualize import song_analysis, generate_images, save_video
 
@@ -10,10 +10,32 @@ def create_app():
 
 	@application.route('/')
 	def root():
-		return "hello world"
+		return "Index; nothing to see here."
 
-	@application.route('/visualize', methods=['GET', 'POST'])
+
+	@application.route('/entry', methods=['GET','POST'])
+	def check_url():
+
+		url = request.args.get('preview')
+		video_id = str(request.args.get('video_id'))
+
+		r = requests.get(url).status_code
+
+		
+		if r == 200:
+			try:
+				requests.get(f"http://sample.eba-5jeurmbw.us-east-1.elasticbeanstalk.com/visualize?preview={url}&video_id={video_id}", timeout=3)
+			except:
+				pass
+			return Response('Accepted', status=202, mimetype='application/json')
+		
+		else:
+			return Response(url, status=404, mimetype='application/json')
+
+			
+	@application.route('/visualize', methods=['GET','POST'])	
 	def visual():
+
 		url = request.args.get('preview')
 		video_id = str(request.args.get('video_id'))
 
@@ -26,6 +48,10 @@ def create_app():
 
 		s3_url = save_video(frames, "song.mp3", video_id)
 
-		return jsonify(video_url=s3_url, video_id=video_id)
+		backend = f"http://artificialartistbe-env.eba-avxhjd7c.us-east-1.elasticbeanstalk.com/api/videos/{video_id}"
+
+		data = {"location": s3_url}
+
+		return requests.put(backend, json = data)
 
 	return application
