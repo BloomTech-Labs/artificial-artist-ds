@@ -1,33 +1,57 @@
-from flask import Flask
-from flask import request
+import os
 import requests
-from .Model import visualize
+from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
+from visualize import song_analysis, generate_images, save_video
+
+def create_app():
+	application = Flask(__name__)
+	CORS(application)
+
+	@application.route('/')
+	def root():
+		return "Index; nothing to see here."
 
 
-application = Flask(__name__)
+	@application.route('/entry', methods=['GET','POST'])
+	def check_url():
 
-@application.route('/')
-def root():
-	return "hello world"
+		url = request.args.get('preview')
+		video_id = str(request.args.get('video_id'))
 
-# get user input
-@application.route('/visualize')
-def visual():
-	url = request.args.get('preview')
-	artist = request.args.get('artist')
-	title = request.args.get('title_short')
+		r = requests.get(url).status_code
 
-	song = requests.get(url)
-	open('song.mp3', 'wb').write(song.content)
+		
+		if r == 200:
+			try:
+				requests.get(f"http://sample.eba-5jeurmbw.us-east-1.elasticbeanstalk.com/visualize?preview={url}&video_id={video_id}", timeout=3)
+			except:
+				pass
+			return Response('Accepted', status=202, mimetype='application/json')
+		
+		else:
+			return Response(url, status=404, mimetype='application/json')
 
-	return "unit-test"
+			
+	@application.route('/visualize', methods=['GET','POST'])	
+	def visual():
 
-	#download user input--cache data???
-	#feed downloaded song into visualizer
+		url = request.args.get('preview')
+		video_id = str(request.args.get('video_id'))
 
-if __name__ == "__main__":
-    # Setting debug to True enables debug output. This line should be
-    # removed before deploying a production app.
-    application.run()	
+		song = requests.get(url)
+		open("song.mp3", 'wb').write(song.content)
+			
+		noise_vectors, class_vectors = song_analysis("song.mp3")
 
+		frames = generate_images(noise_vectors, class_vectors)
 
+		s3_url = save_video(frames, "song.mp3", video_id)
+
+		backend = f"http://artificialartistbe-env.eba-avxhjd7c.us-east-1.elasticbeanstalk.com/api/videos/{video_id}"
+
+		data = {"location": s3_url}
+
+		return requests.put(backend, json = data)
+
+	return application

@@ -1,3 +1,8 @@
+code_of_conduct.md
+LICENSE
+README.md
 Pipfile
 Pipfile.lock
+.env
 .gitignore
+.git

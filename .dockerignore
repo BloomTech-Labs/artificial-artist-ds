@@ -1,0 +1,16 @@
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+.ebextensions/*
+.ebignore
+Dockerrun.aws.json
+
+# git files
+.git/*
+.gitignore
+
+# other files not needed in docker image
+code_of_conduct.md
+LICENSE
+Procfile
+pull_request_template.md
+README.md
