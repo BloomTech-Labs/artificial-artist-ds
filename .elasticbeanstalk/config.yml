@@ -2,6 +2,8 @@ branch-defaults:
   Model-test:
     environment: sample
     group_suffix: null
+  feature/personalization:
+    environment: sample
   master:
     environment: sample
 environment-defaults:

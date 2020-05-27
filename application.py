@@ -17,13 +17,13 @@ def create_app():
 	def check_url():
 
 		if request.method == 'POST':
-			reqs = request.get_json()
+			reqs = request.get_json(force = True)
 
-			preview = str(reqs['preview'])
-			video_id = str(reqs['video_id'])
+			preview = reqs['preview']
+			video_id = reqs['video_id']
 			resolution = '128'
 			if 'resolution' in reqs:
-				resolution = str(reqs['resolution'])
+				resolution = reqs['resolution']
 
 			return check_entry(preview, video_id, resolution)
 
@@ -39,11 +39,11 @@ def create_app():
 	def visual():
 
 		if request.method == 'POST':
-			reqs = request.get_json()
+			reqs = request.get_json(force = True)
 
-			preview = str(reqs['preview'])
-			resolution = str(reqs['resolution'])
-			video_id = str(reqs['video_id'])
+			preview = reqs['preview']
+			resolution = reqs['resolution']
+			video_id = reqs['video_id']
 
 			return generate_and_save(preview, video_id, resolution)
 
