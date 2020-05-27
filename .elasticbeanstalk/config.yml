@@ -2,6 +2,8 @@ branch-defaults:
   Model-test:
     environment: sample
     group_suffix: null
+  master:
+    environment: sample
 environment-defaults:
   DS-test:
     branch: null
