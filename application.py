@@ -1,8 +1,9 @@
 import os
 import requests
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from visualize import song_analysis, generate_images, save_video
+from helper import check_entry, generate_and_save
+
 
 def create_app():
 	application = Flask(__name__)
@@ -12,46 +13,44 @@ def create_app():
 	def root():
 		return "Index; nothing to see here."
 
-
-	@application.route('/entry', methods=['GET','POST'])
+	@application.route('/entry', methods=['GET', 'POST'])
 	def check_url():
 
-		url = request.args.get('preview')
+		if request.method == 'POST':
+			reqs = request.get_json(force = True)
+
+			preview = reqs['preview']
+			video_id = reqs['video_id']
+			resolution = '128'
+			if 'resolution' in reqs:
+				resolution = reqs['resolution']
+
+			return check_entry(preview, video_id, resolution)
+
+		preview = str(request.args.get('preview'))
 		video_id = str(request.args.get('video_id'))
+		resolution = request.args.get('resolution')
+		if resolution == None:
+			resolution = '128'
 
-		r = requests.get(url).status_code
+		return check_entry(preview, video_id, str(resolution))
 
-		
-		if r == 200:
-			try:
-				requests.get(f"http://sample.eba-5jeurmbw.us-east-1.elasticbeanstalk.com/visualize?preview={url}&video_id={video_id}", timeout=3)
-			except:
-				pass
-			return Response('Accepted', status=202, mimetype='application/json')
-		
-		else:
-			return Response(url, status=404, mimetype='application/json')
-
-			
-	@application.route('/visualize', methods=['GET','POST'])	
+	@application.route('/visualize', methods=['GET', 'POST'])
 	def visual():
 
-		url = request.args.get('preview')
+		if request.method == 'POST':
+			reqs = request.get_json(force = True)
+
+			preview = reqs['preview']
+			resolution = reqs['resolution']
+			video_id = reqs['video_id']
+
+			return generate_and_save(preview, video_id, resolution)
+
+		preview = str(request.args.get('preview'))
 		video_id = str(request.args.get('video_id'))
+		resolution = str(request.args.get('resolution'))
 
-		song = requests.get(url)
-		open("song.mp3", 'wb').write(song.content)
-			
-		noise_vectors, class_vectors = song_analysis("song.mp3")
-
-		frames = generate_images(noise_vectors, class_vectors)
-
-		s3_url = save_video(frames, "song.mp3", video_id)
-
-		backend = f"http://artificialartistbe-env.eba-avxhjd7c.us-east-1.elasticbeanstalk.com/api/videos/{video_id}"
-
-		data = {"location": s3_url}
-
-		return requests.put(backend, json = data)
+		return generate_and_save(preview, video_id, resolution)
 
 	return application
