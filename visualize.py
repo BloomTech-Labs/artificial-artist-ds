@@ -369,7 +369,7 @@ def generate_images(noise_vectors, class_vectors, resolution):
 
 		# convert to image array and add to frames
 		for out in output_cpu:
-			im = np.array(toimage(out))
+			im = np.array(scipy.misc.toimage(out))
 			frames.append(im)
 
 		# empty cuda cache

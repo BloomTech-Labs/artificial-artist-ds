@@ -26,7 +26,7 @@ def create_app():
 				resolution = (reqs['resolution'])
 			im_group = None
 			if 'im_group' in reqs:
-				im_group = (reqs['resolution'])
+				im_group = (reqs['im_group'])
 
 			return check_entry(preview, video_id, resolution, im_group)
 
@@ -36,11 +36,11 @@ def create_app():
 		if im_group != None:
 			im_group = str(im_group)
 		resolution = request.args.get('resolution')
-		if resolution == None:
-			resolution = '128'
+		if resolution != None:
+			resolution = str(resolution)
 		
 
-		return check_entry(preview, video_id, str(resolution), im_group)
+		return check_entry(preview, video_id, resolution, im_group)
 
 	@application.route('/visualize', methods=['GET', 'POST'])
 	def visual():
@@ -58,7 +58,8 @@ def create_app():
 		preview = str(request.args.get('preview'))
 		video_id = str(request.args.get('video_id'))
 		resolution = str(request.args.get('resolution'))
+		classes = str(request.args.get('classes'))
 
-		return generate_and_save(preview, video_id, resolution)
+		return generate_and_save(preview, video_id, resolution, classes)
 
 	return application

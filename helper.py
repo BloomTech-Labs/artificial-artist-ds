@@ -7,19 +7,19 @@ import random
 
 def choose_classes(im_group):
 	if im_group == None:
-		im_group = random.sample(IMAGE_GROUPS.keys(), 1)
+		im_group = random.sample(IMAGE_GROUPS.keys(), 1)[0]
 
-	if len(IMAGE_GROUPS[im_group[0]]) < 4:
-		im_classes = IMAGE_GROUPS[im_group[0]]
+	if len(IMAGE_GROUPS[im_group]) < 4:
+		im_classes = IMAGE_GROUPS[im_group]
 	else:
-		im_classes = random.sample(IMAGE_GROUPS[im_group[0]], 4)
+		im_classes = random.sample(IMAGE_GROUPS[im_group], 4)
 	return im_classes
 
 def check_entry(preview, video_id, resolution, im_group):
 
 	r = requests.get(preview).status_code
 
-	vis_url = 'http://sample.eba-5jeurmbw.us-east-1.elasticbeanstalk.com/visualize'
+	vis_url = 'http://artificial-artist.eba-5jeurmbw.us-east-1.elasticbeanstalk.com/visualize'
 
 	classes = choose_classes(im_group)
 
@@ -37,13 +37,13 @@ def check_entry(preview, video_id, resolution, im_group):
 		return Response(f"{str(url)} not found.", status=404,
 						mimetype='application/json')
 
-def generate_and_save(preview, video_id, resolution):
+def generate_and_save(preview, video_id, resolution, classes):
 
 	song = requests.get(preview)
 
 	open("song.mp3", 'wb').write(song.content)
 
-	noise_vectors, class_vectors = song_analysis("song.mp3")
+	noise_vectors, class_vectors = song_analysis("song.mp3", classes)
 
 	frames = generate_images(noise_vectors, class_vectors, resolution)
 

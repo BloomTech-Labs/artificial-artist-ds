@@ -2,6 +2,9 @@ branch-defaults:
   Model-test:
     environment: sample
     group_suffix: null
+  feature/classes:
+    environment: artificial-artist
+    group_suffix: null
   feature/personalization:
     environment: sample
   master:
