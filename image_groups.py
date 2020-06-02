@@ -18,7 +18,7 @@ IMAGE_GROUPS = {
     "RANDOM DOGS": list(range(222, 269)),
     "WOLVES": list(range(269, 274)),
     "HYAENAS": list(range(275, 277)),
-    "VULPINE": list(range(277, 281)),
+    "FOXY": list(range(277, 281)),
     "DOMESTIC CATS": list(range(281, 286)),
     "BIG CATS": list(range(286, 294)),
     "BEAR": list(range(294, 298)),

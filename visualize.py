@@ -11,7 +11,6 @@ import boto3
 from botocore.exceptions import ClientError
 import logging
 from config import *
-import scipy.misc
 
 # set model based on resolution
 
@@ -214,12 +213,7 @@ def song_analysis(song=None, classes=None, jitter=0.5, depth=1):
 	# sort pitches by overall power
 	chromasort = np.argsort(np.mean(chroma, axis=1))[::-1]
 
-	# select 4 random classes if no classes given.
-	if classes == None:
-		cls1000 = list(range(1000))
-		random.shuffle(cls1000)
-		classes = cls1000[:4]
-
+	# gets # of classes
 	num_classes = len(classes)
 
 	print('\nGenerating input vectors \n')
