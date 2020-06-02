@@ -70,10 +70,11 @@ def sensitivity_tempo(tempo_sensitivity=0.25):
 
 	return tempo_sensitivity
 
+
+# truncation
 # how much the image morphs between frames
 # default .5
 # recommended range: 0.05 – 0.8
-truncation = 0.5
 
 # can reduce this number to make clearer images or increase to reduce computational load
 # default: 512
@@ -127,7 +128,7 @@ def new_jitters(jitter):
 
 
 # get new update directions
-def new_update_dir(nv2, update_dir):
+def new_update_dir(nv2, update_dir, truncation):
 	"""
 	changes the direction of the noise vector
 
@@ -175,7 +176,7 @@ def normalize_cv(cv2):
 # creates the class and noise vectors files
 
 
-def song_analysis(song=None, classes=None, jitter=0.5, depth=1):
+def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5):
 	"""
 	Inputs:
 		song: path of 30 second mp3 file
@@ -284,7 +285,7 @@ def song_analysis(song=None, classes=None, jitter=0.5, depth=1):
 		nvlast = nv2
 
 		# update the direction of noise units
-		update_dir = new_update_dir(nv2, update_dir)
+		update_dir = new_update_dir(nv2, update_dir, truncation)
 
 		# get last class vector
 		cv1 = cvlast
@@ -328,7 +329,7 @@ def song_analysis(song=None, classes=None, jitter=0.5, depth=1):
 	return noise_vectors, class_vectors
 
 
-def generate_images(noise_vectors, class_vectors, resolution):
+def generate_images(noise_vectors, class_vectors, resolution, truncation):
 	"""
 	Take vectors from song_analysis and generate images
 
