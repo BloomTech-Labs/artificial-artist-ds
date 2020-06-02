@@ -41,12 +41,12 @@ def generate_and_save(preview, video_id, resolution, classes):
 
 	song = requests.get(preview)
 
-	open("song.mp3", 'wb').write(song.content)
+	open(f"{video_id}.mp3", 'wb').write(song.content)
 
-	noise_vectors, class_vectors = song_analysis("song.mp3", classes)
+	noise_vectors, class_vectors = song_analysis(f"{video_id}.mp3", classes)
 
 	frames = generate_images(noise_vectors, class_vectors, resolution)
 
-	save_video(frames, "song.mp3", video_id)
+	save_video(frames, f"{video_id}.mp3", video_id)
 
 	return 'Saved to S3'
