@@ -128,16 +128,16 @@ def new_jitters(jitter):
 
 
 # get new update directions
-def new_update_dir(nv2, update_dir, truncation):
+def new_update_dir(nv2, update_dir, truncation, tempo_sensitivity=0.25):
 	"""
 	changes the direction of the noise vector
 
 	"""
 	for ni, n in enumerate(nv2):
-		if n >= 2 * truncation - sensitivity_tempo():
+		if n >= 2 * truncation - sensitivity_tempo(tempo_sensitivity):
 			update_dir[ni] = -1
 
-		elif n < -2 * truncation + sensitivity_tempo():
+		elif n < -2 * truncation + sensitivity_tempo(tempo_sensitivity):
 			update_dir[ni] = 1
 	return update_dir
 
@@ -176,7 +176,8 @@ def normalize_cv(cv2):
 # creates the class and noise vectors files
 
 
-def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5):
+def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5,
+					pitch_sensitivity=220, tempo_sensitivity=0.25):
 	"""
 	Inputs:
 		song: path of 30 second mp3 file
@@ -265,7 +266,7 @@ def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5):
 
 		# set noise vector update based on direction, sensitivity, jitter, and
 		# combination of overall power and gradient of power
-		update = np.array([sensitivity_tempo() for k in range(
+		update = np.array([sensitivity_tempo(tempo_sensitivity) for k in range(
 			128)]) * (gradm[i] + specm[i]) * update_dir * jitters
 
 		# smooth the update with the previous update (to avoid overly sharp
@@ -295,7 +296,9 @@ def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5):
 		for j in range(num_classes):
 
 			cv2[classes[j]] = (cvlast[classes[j]] +
-							   ((chroma[chromasort[j]][i]) / (sensitivity_pitch()))) / (1 + (1 / ((sensitivity_pitch()))))
+							   ((chroma[chromasort[j]][i]) / 
+							   (sensitivity_pitch(pitch_sensitivity)))) / 
+							   (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
 
 		# if more than 6 classes, normalize new class vector between 0 and 1,
 		# else simply set max class val to 1
