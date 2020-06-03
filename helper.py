@@ -16,7 +16,7 @@ def choose_classes(im_group):
 	return im_classes
 
 def check_entry(preview, video_id, resolution, im_group, jitter, 
-				depth, truncation):
+				depth, truncation, pitch_sensitivity, tempo_sensitivity):
 
 	r = requests.get(preview).status_code
 
@@ -26,7 +26,8 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 
 	data = {"preview": preview, "video_id": video_id, "resolution": resolution,
 			"classes": classes, "jitter": jitter, "depth": depth,
-			"truncation": truncation}
+			"truncation": truncation, "pitch_sensitivity": pitch_sensitivity,
+			"tempo_sensitivity": tempo_sensitivity}
 
 	if r == 200:
 		try:
@@ -40,14 +41,16 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 						mimetype='application/json')
 
 def generate_and_save(preview, video_id, resolution, classes, jitter, 
-						depth, truncation):
+						depth, truncation, pitch_sensitivity, tempo_sensitivity):
 
 	song = requests.get(preview)
 
 	open(f"{video_id}.mp3", 'wb').write(song.content)
 
 	noise_vectors, class_vectors = song_analysis(f"{video_id}.mp3", classes, 
-												jitter, depth, truncation)
+												jitter, depth, truncation,
+												pitch_sensitivity, 
+												tempo_sensitivity)
 
 	frames = generate_images(noise_vectors, class_vectors, resolution, 
 								truncation)
