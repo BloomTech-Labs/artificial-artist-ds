@@ -3,7 +3,7 @@ import numpy as np
 import moviepy.editor as mpy
 import random
 import torch
-from scipy.misc import toimage
+from scipy.misc import toimage, imsave
 from tqdm import tqdm
 from pytorch_pretrained_biggan import (BigGAN, one_hot_from_names, truncated_noise_sample,
 									   save_as_images, display_in_terminal)
@@ -176,8 +176,8 @@ def normalize_cv(cv2):
 # creates the class and noise vectors files
 
 
-def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5,
-					pitch_sensitivity=220, tempo_sensitivity=0.25):
+def song_analysis(song, classes, jitter, depth, truncation,
+					pitch_sensitivity, tempo_sensitivity):
 	"""
 	Inputs:
 		song: path of 30 second mp3 file
@@ -438,6 +438,6 @@ def save_video(frames, song, outname):
 	clip.write_videofile(outname + ".mp4", audio_codec='aac')
 
 	# saves thumbnail
-	scipy.misc.imsave(outname + ".jpg", frames[-1])
+	imsave(outname + ".jpg", frames[-1])
 
 	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")

@@ -28,6 +28,8 @@ def create_app():
 			jitter = 0.5
 			depth = 1
 			truncation = 0.5
+			pitch_sensitivity = 220
+			tempo_sensitivity = 0.25
 
 			#checks to see if other values are specified by user
 			if 'resolution' in reqs:
@@ -45,8 +47,15 @@ def create_app():
 			if 'truncation' in reqs:
 				truncation = reqs['truncation']
 
+			if 'pitch_sensitivity' in reqs:
+				pitch_sensitivity = reqs['pitch_sensitivity']
+			
+			if 'tempo_sensitivity' in reqs:
+				tempo_sensitivity = reqs['tempo_sensitivity']
+
 			return check_entry(preview, video_id, resolution, im_group, jitter, 
-								depth, truncation)
+								depth, truncation, pitch_sensitivity, 
+								tempo_sensitivity)
 
 		preview = str(request.args.get('preview'))
 		video_id = str(request.args.get('video_id'))
@@ -70,9 +79,18 @@ def create_app():
 		truncation = request.args.get('truncation')
 		if truncation == None:
 			truncation = 0.5
+
+		pitch_sensitivity = request.args.get('pitch_sensitivity')
+		if pitch_sensitivity == None:
+			pitch_sensitivity = 220
+
+		tempo_sensitivity = request.args.get('tempo_sensitivity')
+		if tempo_sensitivity == None:
+			tempo_sensitivity = 0.25
 		
 		return check_entry(preview, video_id, resolution, im_group, jitter, 
-							depth, truncation)
+								depth, truncation, pitch_sensitivity, 
+								tempo_sensitivity)
 
 	@application.route('/visualize', methods=['GET', 'POST'])
 	def visual():
@@ -87,9 +105,12 @@ def create_app():
 			jitter = reqs['jitter']
 			depth = reqs['depth']
 			truncation = reqs['truncation']
+			pitch_sensitivity = reqs['pitch_sensitivity']
+			tempo_sensitivity = reqs['tempo_sensitivity']
 
 			return generate_and_save(preview, video_id, resolution, classes,
-										jitter, depth, truncation)
+										jitter, depth, truncation, 
+										pitch_sensitivity, tempo_sensitivity)
 
 		preview = str(request.args.get('preview'))
 		video_id = str(request.args.get('video_id'))
@@ -98,8 +119,11 @@ def create_app():
 		jitter = request.args.get('jitter')
 		depth = request.args.get('depth')
 		truncation = request.args.get('truncation')
+		pitch_sensitivity = request.args.get('pitch_sensitivity')
+		tempo_sensitivity = request.args.get('tempo_sensitivity')
 
 		return generate_and_save(preview, video_id, resolution, classes,
-									jitter, depth, truncation)
+										jitter, depth, truncation, 
+										pitch_sensitivity, tempo_sensitivity)
 
 	return application
