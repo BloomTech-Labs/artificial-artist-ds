@@ -3,7 +3,7 @@ import numpy as np
 import moviepy.editor as mpy
 import random
 import torch
-from scipy.misc import toimage, imsave
+from scipy.misc import toimage
 from tqdm import tqdm
 from pytorch_pretrained_biggan import (BigGAN, one_hot_from_names, truncated_noise_sample,
 									   save_as_images, display_in_terminal)
@@ -435,6 +435,6 @@ def save_video(frames, song, outname):
 	clip.write_videofile(outname + ".mp4", audio_codec='aac')
 
 	# saves thumbnail
-	imsave(outname + ".jpg", frames[-1])
+	scipy.misc.imsave(outname + ".jpg", frames[-1])
 
 	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")
