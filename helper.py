@@ -15,16 +15,18 @@ def choose_classes(im_group):
 		im_classes = random.sample(IMAGE_GROUPS[im_group], 4)
 	return im_classes
 
-def check_entry(preview, video_id, resolution, im_group):
+def check_entry(preview, video_id, resolution, im_group, jitter, 
+				depth, truncation):
 
 	r = requests.get(preview).status_code
 
-	vis_url = 'http://artificial-artist.eba-5jeurmbw.us-east-1.elasticbeanstalk.com/visualize'
+	vis_url = 'http://artificial-artist.eba-cyfpphb2.us-east-1.elasticbeanstalk.com/visualize'
 
 	classes = choose_classes(im_group)
 
-	data = {"preview": preview, "video_id": video_id,
-			"resolution": resolution, "classes": classes}
+	data = {"preview": preview, "video_id": video_id, "resolution": resolution,
+			"classes": classes, "jitter": jitter, "depth": depth,
+			"truncation": truncation}
 
 	if r == 200:
 		try:
@@ -37,15 +39,18 @@ def check_entry(preview, video_id, resolution, im_group):
 		return Response(f"{str(url)} not found.", status=404,
 						mimetype='application/json')
 
-def generate_and_save(preview, video_id, resolution, classes):
+def generate_and_save(preview, video_id, resolution, classes, jitter, 
+						depth, truncation):
 
 	song = requests.get(preview)
 
 	open(f"{video_id}.mp3", 'wb').write(song.content)
 
-	noise_vectors, class_vectors = song_analysis(f"{video_id}.mp3", classes)
+	noise_vectors, class_vectors = song_analysis(f"{video_id}.mp3", classes, 
+												jitter, depth, truncation)
 
-	frames = generate_images(noise_vectors, class_vectors, resolution)
+	frames = generate_images(noise_vectors, class_vectors, resolution, 
+								truncation)
 
 	save_video(frames, f"{video_id}.mp3", video_id)
 

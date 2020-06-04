@@ -8,7 +8,7 @@ branch-defaults:
   feature/personalization:
     environment: sample
   master:
-    environment: sample
+    environment: artificial-artist
 environment-defaults:
   DS-test:
     branch: null
@@ -44,7 +44,7 @@ environment-defaults:
     branch: null
     repository: null
 global:
-  application_name: container
+  application_name: artificial-artist-ds
   branch: null
   default_ec2_keyname: null
   default_platform: Docker
