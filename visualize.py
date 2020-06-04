@@ -296,9 +296,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 		for j in range(num_classes):
 
 			cv2[classes[j]] = (cvlast[classes[j]] +
-							   ((chroma[chromasort[j]][i]) / 
-							   (sensitivity_pitch(pitch_sensitivity)))) / 
-							   (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
+								((chroma[chromasort[j]][i]) / (sensitivity_pitch(pitch_sensitivity)))) / (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
 
 		# if more than 6 classes, normalize new class vector between 0 and 1,
 		# else simply set max class val to 1
