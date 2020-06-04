@@ -71,11 +71,6 @@ def sensitivity_tempo(tempo_sensitivity=0.25):
 	return tempo_sensitivity
 
 
-# truncation
-# how much the image morphs between frames
-# default .5
-# recommended range: 0.05 – 0.8
-
 # can reduce this number to make clearer images or increase to reduce computational load
 # default: 512
 # range: multiples of 64
@@ -94,7 +89,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # set smooth factor
 
 
-def smooth_factor(smooth_factor=20):
+def smooth_factor(smooth_factor):
 	"""
 	int > 0
 	smooths the class vectors to prevent small fluctuations in pitch from causing the frames to go back and forth
@@ -143,7 +138,7 @@ def new_update_dir(nv2, update_dir, truncation, tempo_sensitivity=0.25):
 
 
 # smooth class vectors
-def smooth(class_vectors, smooth_factor=smooth_factor()):
+def smooth(class_vectors, smooth_factor):
 
 	if smooth_factor == 1:
 		return class_vectors
@@ -177,7 +172,7 @@ def normalize_cv(cv2):
 
 
 def song_analysis(song, classes, jitter, depth, truncation,
-					pitch_sensitivity, tempo_sensitivity):
+					pitch_sensitivity, tempo_sensitivity, smooth_factor):
 	"""
 	Inputs:
 		song: path of 30 second mp3 file
@@ -320,7 +315,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 
 	# interpolate between class vectors of bin size [smooth_factor] to smooth
 	# frames
-	class_vectors = smooth(class_vectors, smooth_factor())
+	class_vectors = smooth(class_vectors, smooth_factor(smooth_factor))
 
 	# save record of vectors for current video
 	# TODO: have deezer_id prepended to file for saving in s3

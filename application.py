@@ -30,6 +30,7 @@ def create_app():
 			truncation = 0.5
 			pitch_sensitivity = 220
 			tempo_sensitivity = 0.25
+			smooth_factor = 20
 
 			#checks to see if other values are specified by user
 			if 'resolution' in reqs:
@@ -53,9 +54,12 @@ def create_app():
 			if 'tempo_sensitivity' in reqs:
 				tempo_sensitivity = reqs['tempo_sensitivity']
 
+			if 'smooth_factor' in reqs:
+				smooth_factor = reqs['smooth_factor']
+
 			return check_entry(preview, video_id, resolution, im_group, jitter, 
 								depth, truncation, pitch_sensitivity, 
-								tempo_sensitivity)
+								tempo_sensitivity, smooth_factor)
 
 		preview = str(request.args.get('preview'))
 		video_id = str(request.args.get('video_id'))
@@ -88,9 +92,13 @@ def create_app():
 		if tempo_sensitivity == None:
 			tempo_sensitivity = 0.25
 		
+		smooth_factor = request.args.get('smooth_factor')
+		if smooth_factor == None:
+			smooth_factor = 20
+		
 		return check_entry(preview, video_id, resolution, im_group, jitter, 
 								depth, truncation, pitch_sensitivity, 
-								tempo_sensitivity)
+								tempo_sensitivity, smooth_factor)
 
 	@application.route('/visualize', methods=['GET', 'POST'])
 	def visual():
@@ -107,10 +115,12 @@ def create_app():
 			truncation = reqs['truncation']
 			pitch_sensitivity = reqs['pitch_sensitivity']
 			tempo_sensitivity = reqs['tempo_sensitivity']
+			smooth_factor = reqs['smooth_factor']
 
 			return generate_and_save(preview, video_id, resolution, classes,
 										jitter, depth, truncation, 
-										pitch_sensitivity, tempo_sensitivity)
+										pitch_sensitivity, tempo_sensitivity,
+										smooth_factor)
 
 		preview = str(request.args.get('preview'))
 		video_id = str(request.args.get('video_id'))
@@ -121,9 +131,11 @@ def create_app():
 		truncation = request.args.get('truncation')
 		pitch_sensitivity = request.args.get('pitch_sensitivity')
 		tempo_sensitivity = request.args.get('tempo_sensitivity')
+		smooth_factor = request.args.get('smooth_factor')
 
 		return generate_and_save(preview, video_id, resolution, classes,
 										jitter, depth, truncation, 
-										pitch_sensitivity, tempo_sensitivity)
+										pitch_sensitivity, tempo_sensitivity,
+										smooth_factor)
 
 	return application
