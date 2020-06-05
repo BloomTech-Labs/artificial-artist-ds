@@ -123,16 +123,16 @@ def new_jitters(jitter):
 
 
 # get new update directions
-def new_update_dir(nv2, update_dir, truncation, tempo_sensitivity=0.25):
+def new_update_dir(nv2, update_dir, truncation):
 	"""
 	changes the direction of the noise vector
 
 	"""
 	for ni, n in enumerate(nv2):
-		if n >= 2 * truncation - sensitivity_tempo(tempo_sensitivity):
+		if n >= 2 * truncation - sensitivity_tempo():
 			update_dir[ni] = -1
 
-		elif n < -2 * truncation + sensitivity_tempo(tempo_sensitivity):
+		elif n < -2 * truncation + sensitivity_tempo():
 			update_dir[ni] = 1
 	return update_dir
 
@@ -173,6 +173,7 @@ def normalize_cv(cv2):
 
 def song_analysis(song, classes, jitter, depth, truncation,
 					pitch_sensitivity, tempo_sensitivity, smooth_factor):
+
 	"""
 	Inputs:
 		song: path of 30 second mp3 file
@@ -261,7 +262,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 
 		# set noise vector update based on direction, sensitivity, jitter, and
 		# combination of overall power and gradient of power
-		update = np.array([sensitivity_tempo(tempo_sensitivity) for k in range(
+		update = np.array([sensitivity_tempo() for k in range(
 			128)]) * (gradm[i] + specm[i]) * update_dir * jitters
 
 		# smooth the update with the previous update (to avoid overly sharp

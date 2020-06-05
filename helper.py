@@ -30,6 +30,7 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 			"truncation": truncation, "pitch_sensitivity": pitch_sensitivity,
 			"tempo_sensitivity": tempo_sensitivity, "smooth_factor": smooth_factor}
 
+
 	if r == 200:
 		try:
 			requests.post(vis_url, json=data, timeout=3)
@@ -53,6 +54,7 @@ def generate_and_save(preview, video_id, resolution, classes, jitter,
 												jitter, depth, truncation,
 												pitch_sensitivity, 
 												tempo_sensitivity, smooth_factor)
+
 
 	frames = generate_images(noise_vectors, class_vectors, resolution, 
 								truncation)
