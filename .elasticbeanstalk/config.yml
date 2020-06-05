@@ -1,51 +1,6 @@
 branch-defaults:
-  Model-test:
-    environment: sample
-    group_suffix: null
-  feature/classes:
-    environment: artificial-artist
-    group_suffix: null
-  feature/personalization:
-    environment: sample
   master:
     environment: artificial-artist
-environment-defaults:
-  DS-test:
-    branch: null
-    repository: null
-  Flask:
-    branch: null
-    repository: null
-  Flask-container6:
-    branch: null
-    repository: null
-  Flask-container7:
-    branch: null
-    repository: null
-  Sample:
-    branch: null
-    repository: null
-  artificial-artist-2:
-    branch: null
-    repository: null
-  docker:
-    branch: null
-    repository: null
-  docker-test3:
-    branch: null
-    repository: null
-  docker9:
-    branch: null
-    repository: null
-  ds-flask:
-    branch: null
-    repository: null
-  flask:
-    branch: null
-    repository: null
-  sagemaker-reqs:
-    branch: null
-    repository: null
 global:
   application_name: artificial-artist-ds
   branch: null

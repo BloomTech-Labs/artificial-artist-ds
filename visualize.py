@@ -12,8 +12,6 @@ from botocore.exceptions import ClientError
 import logging
 from config import *
 
-# set model based on resolution
-
 
 def model_resolution(resolution):
 	"""
@@ -171,7 +169,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 	"""
 	Inputs:
 			song: path of 30 second mp3 file
-			classes: LIST of classes by index from ImageNet, leave as None for four random classes -max 12 classes
+			classes: LIST of classes by index from ImageNet1000 -max 12 classes
 			jitter: FLOAT 0 to 1
 			depth: FLOAT 0 to 1
 
