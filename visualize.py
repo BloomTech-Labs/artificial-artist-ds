@@ -89,7 +89,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # set smooth factor
 
 
-def smooth_factor(smooth_factor):
+def smooth_rate(smooth_factor):
 	"""
 	int > 0
 	smooths the class vectors to prevent small fluctuations in pitch from causing the frames to go back and forth
@@ -315,7 +315,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 
 	# interpolate between class vectors of bin size [smooth_factor] to smooth
 	# frames
-	class_vectors = smooth(class_vectors, smooth_factor(smooth_factor))
+	class_vectors = smooth(class_vectors, smooth_rate(smooth_factor))
 
 	# save record of vectors for current video
 	# TODO: have deezer_id prepended to file for saving in s3

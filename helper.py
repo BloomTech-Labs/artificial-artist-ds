@@ -16,7 +16,8 @@ def choose_classes(im_group):
 	return im_classes
 
 def check_entry(preview, video_id, resolution, im_group, jitter, 
-				depth, truncation, pitch_sensitivity, tempo_sensitivity):
+				depth, truncation, pitch_sensitivity, tempo_sensitivity, 
+				smooth_factor):
 
 	r = requests.get(preview).status_code
 
