@@ -71,11 +71,6 @@ def sensitivity_tempo(tempo_sensitivity=0.25):
 	return tempo_sensitivity
 
 
-# truncation
-# how much the image morphs between frames
-# default .5
-# recommended range: 0.05 – 0.8
-
 # can reduce this number to make clearer images or increase to reduce computational load
 # default: 512
 # range: multiples of 64
@@ -94,7 +89,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # set smooth factor
 
 
-def smooth_factor(smooth_factor=20):
+def smooth_rate(smooth_factor):
 	"""
 	int > 0
 	smooths the class vectors to prevent small fluctuations in pitch from causing the frames to go back and forth
@@ -143,7 +138,7 @@ def new_update_dir(nv2, update_dir, truncation):
 
 
 # smooth class vectors
-def smooth(class_vectors, smooth_factor=smooth_factor()):
+def smooth(class_vectors, smooth_factor):
 
 	if smooth_factor == 1:
 		return class_vectors
@@ -176,7 +171,9 @@ def normalize_cv(cv2):
 # creates the class and noise vectors files
 
 
-def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5):
+def song_analysis(song, classes, jitter, depth, truncation,
+					pitch_sensitivity, tempo_sensitivity, smooth_factor):
+
 	"""
 	Inputs:
 		song: path of 30 second mp3 file
@@ -295,7 +292,7 @@ def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5):
 		for j in range(num_classes):
 
 			cv2[classes[j]] = (cvlast[classes[j]] +
-							   ((chroma[chromasort[j]][i]) / (sensitivity_pitch()))) / (1 + (1 / ((sensitivity_pitch()))))
+								((chroma[chromasort[j]][i]) / (sensitivity_pitch(pitch_sensitivity)))) / (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
 
 		# if more than 6 classes, normalize new class vector between 0 and 1,
 		# else simply set max class val to 1
@@ -319,7 +316,7 @@ def song_analysis(song=None, classes=None, jitter=0.5, depth=1, truncation=0.5):
 
 	# interpolate between class vectors of bin size [smooth_factor] to smooth
 	# frames
-	class_vectors = smooth(class_vectors, smooth_factor())
+	class_vectors = smooth(class_vectors, smooth_rate(smooth_factor))
 
 	# save record of vectors for current video
 	# TODO: have deezer_id prepended to file for saving in s3
