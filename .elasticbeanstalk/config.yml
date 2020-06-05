@@ -25,6 +25,9 @@ environment-defaults:
   Sample:
     branch: null
     repository: null
+  artificial-artist-2:
+    branch: null
+    repository: null
   docker:
     branch: null
     repository: null
