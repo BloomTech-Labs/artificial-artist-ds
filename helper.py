@@ -5,6 +5,7 @@ from flask import Response
 from image_groups import IMAGE_GROUPS
 import random
 
+
 def choose_classes(im_group):
 	if im_group == None:
 		im_group = random.sample(IMAGE_GROUPS.keys(), 1)[0]
@@ -15,8 +16,9 @@ def choose_classes(im_group):
 		im_classes = random.sample(IMAGE_GROUPS[im_group], 4)
 	return im_classes
 
-def check_entry(preview, video_id, resolution, im_group, jitter, 
-				depth, truncation, pitch_sensitivity, tempo_sensitivity, 
+
+def check_entry(preview, video_id, resolution, im_group, jitter,
+				depth, truncation, pitch_sensitivity, tempo_sensitivity,
 				smooth_factor):
 
 	r = requests.get(preview).status_code
@@ -30,7 +32,6 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 			"truncation": truncation, "pitch_sensitivity": pitch_sensitivity,
 			"tempo_sensitivity": tempo_sensitivity, "smooth_factor": smooth_factor}
 
-
 	if r == 200:
 		try:
 			requests.post(vis_url, json=data, timeout=3)
@@ -42,22 +43,22 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 		return Response(f"{str(url)} not found.", status=404,
 						mimetype='application/json')
 
-def generate_and_save(preview, video_id, resolution, classes, jitter, 
-						depth, truncation, pitch_sensitivity, tempo_sensitivity,
-						smooth_factor):
+
+def generate_and_save(preview, video_id, resolution, classes, jitter,
+					  depth, truncation, pitch_sensitivity, tempo_sensitivity,
+					  smooth_factor):
 
 	song = requests.get(preview)
 
 	open(f"{video_id}.mp3", 'wb').write(song.content)
 
-	noise_vectors, class_vectors = song_analysis(f"{video_id}.mp3", classes, 
-												jitter, depth, truncation,
-												pitch_sensitivity, 
-												tempo_sensitivity, smooth_factor)
+	noise_vectors, class_vectors = song_analysis(f"{video_id}.mp3", classes,
+												 jitter, depth, truncation,
+												 pitch_sensitivity,
+												 tempo_sensitivity, smooth_factor)
 
-
-	frames = generate_images(noise_vectors, class_vectors, resolution, 
-								truncation)
+	frames = generate_images(noise_vectors, class_vectors, resolution,
+							 truncation)
 
 	save_video(frames, f"{video_id}.mp3", video_id)
 

@@ -12,19 +12,14 @@ from botocore.exceptions import ClientError
 import logging
 from config import *
 
-# set model based on resolution
 
-
-def model_resolution(resolution=None):
+def model_resolution(resolution):
 	"""
 	set model's resolution, default 128
 	128, 256, or 512 
 	lower = faster generation, lower quality.
 
 	"""
-	if None:
-		resolution = '128'
-
 	model_name = 'biggan-deep-' + resolution
 	model = BigGAN.from_pretrained(model_name)
 
@@ -44,7 +39,7 @@ def song_duration(duration=30):
 
 
 # set pitch sensitivity
-def sensitivity_pitch(pitch_sensitivity=220):
+def sensitivity_pitch(pitch_sensitivity):
 	"""
 	INT
 	Set how quickly images move according to pitch
@@ -58,7 +53,7 @@ def sensitivity_pitch(pitch_sensitivity=220):
 
 
 # set tempo sensitivity
-def sensitivity_tempo(tempo_sensitivity=0.25):
+def sensitivity_tempo(tempo_sensitivity):
 	"""
 	FLOAT between 0 and 1
 	Set how quickly images morph due to tempo
@@ -86,8 +81,6 @@ batch_size = 32
 # use cuda or face a generation time in the hours. You have been warned.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# set smooth factor
-
 
 def smooth_rate(smooth_factor):
 	"""
@@ -105,8 +98,6 @@ def smooth_rate(smooth_factor):
 
 	return smooth_factor
 
-# get new jitters
-
 
 def new_jitters(jitter):
 	"""
@@ -122,24 +113,26 @@ def new_jitters(jitter):
 	return jitters
 
 
-# get new update directions
-def new_update_dir(nv2, update_dir, truncation):
+def new_update_dir(nv2, update_dir, truncation, tempo_sensitivity):
 	"""
 	changes the direction of the noise vector
 
 	"""
 	for ni, n in enumerate(nv2):
-		if n >= 2 * truncation - sensitivity_tempo():
+		if n >= 2 * truncation - sensitivity_tempo(tempo_sensitivity):
 			update_dir[ni] = -1
 
-		elif n < -2 * truncation + sensitivity_tempo():
+		elif n < -2 * truncation + sensitivity_tempo(tempo_sensitivity):
 			update_dir[ni] = 1
 	return update_dir
 
 
-# smooth class vectors
+# 
 def smooth(class_vectors, smooth_factor):
+	"""
+	smooth class vectors
 
+	"""
 	if smooth_factor == 1:
 		return class_vectors
 
@@ -172,14 +165,13 @@ def normalize_cv(cv2):
 
 
 def song_analysis(song, classes, jitter, depth, truncation,
-					pitch_sensitivity, tempo_sensitivity, smooth_factor):
-
+				  pitch_sensitivity, tempo_sensitivity, smooth_factor):
 	"""
 	Inputs:
-		song: path of 30 second mp3 file
-		classes: LIST of classes by index from ImageNet, leave as None for four random classes -max 12 classes
-		jitter: FLOAT 0 to 1
-		depth: FLOAT 0 to 1
+			song: path of 30 second mp3 file
+			classes: LIST of classes by index from ImageNet1000 -max 12 classes
+			jitter: FLOAT 0 to 1
+			depth: FLOAT 0 to 1
 
 	"""
 	# read song: audio waveform and sampling rate saved
@@ -187,8 +179,8 @@ def song_analysis(song, classes, jitter, depth, truncation,
 	y, sr = librosa.load(song)
 
 	# create spectrogram
-	spec = librosa.feature.melspectrogram(
-		y=y, sr=sr, n_mels=128, fmax=8000, hop_length=frame_length)
+	spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000, 
+											hop_length=frame_length)
 
 	# get mean power at each time point
 	specm = np.mean(spec, axis=0)
@@ -262,7 +254,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 
 		# set noise vector update based on direction, sensitivity, jitter, and
 		# combination of overall power and gradient of power
-		update = np.array([sensitivity_tempo() for k in range(
+		update = np.array([sensitivity_tempo(tempo_sensitivity) for k in range(
 			128)]) * (gradm[i] + specm[i]) * update_dir * jitters
 
 		# smooth the update with the previous update (to avoid overly sharp
@@ -282,7 +274,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 		nvlast = nv2
 
 		# update the direction of noise units
-		update_dir = new_update_dir(nv2, update_dir, truncation)
+		update_dir = new_update_dir(nv2, update_dir, truncation, tempo_sensitivity)
 
 		# get last class vector
 		cv1 = cvlast
@@ -292,7 +284,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 		for j in range(num_classes):
 
 			cv2[classes[j]] = (cvlast[classes[j]] +
-								((chroma[chromasort[j]][i]) / (sensitivity_pitch(pitch_sensitivity)))) / (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
+							   ((chroma[chromasort[j]][i]) / (sensitivity_pitch(pitch_sensitivity)))) / (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
 
 		# if more than 6 classes, normalize new class vector between 0 and 1,
 		# else simply set max class val to 1
@@ -416,6 +408,8 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 	return
 
 # Save video
+
+
 def save_video(frames, song, outname):
 	"""
 	Input: frames from generating function, and song mp3
