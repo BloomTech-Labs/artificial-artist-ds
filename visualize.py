@@ -15,6 +15,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import shutil
+import imageio
 
 
 def model_resolution(resolution):
@@ -344,9 +345,9 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 	tmp_folder_path = os.path.join(os.getcwd(), f"{video_id}_frames")
 
 	if os.path.exists(tmp_folder_path):
-        shutil.rmtree(tmp_folder_path)
-    os.mkdir(tmp_folder_path)
-    counter = 0
+		shutil.rmtree(tmp_folder_path)
+	os.mkdir(tmp_folder_path)
+	counter = 0
 
 	for i in tqdm(range(song_duration())):
 
@@ -371,8 +372,8 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 		# convert to image array and add to frames
 		for out in output_cpu:
 			im = np.array(toimage(out))
-			imageio.imwrite(os.path.join(tmp_folder_path, str(counter) + ".png"), im)
-            counter=counter + 1
+			imsave(os.path.join(tmp_folder_path, str(counter) + ".jpg"), im)
+			counter=counter + 1
 
 		# empty cuda cache
 		torch.cuda.empty_cache()
@@ -417,9 +418,8 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 		logging.error(e)
 		return "error uploading"
 
-	return
 
-# Save video
+	return 'temp dir cleaned'
 
 
 def save_video(tmp_folder_path, song, outname):
@@ -429,8 +429,8 @@ def save_video(tmp_folder_path, song, outname):
 	Output: created video in mp4 format, and jpg for thumbnail
 
 	"""
-   	files_path = [os.path.join(tmp_folder_path, x)
-        		for x in os.listdir(tmp_folder_path) if x.endswith('.png')]
+	files_path = [os.path.join(tmp_folder_path, x)
+				for x in os.listdir(tmp_folder_path) if x.endswith('.jpg')]
 	files_path.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
 	aud = mpy.AudioFileClip(song, fps=44100)
@@ -442,10 +442,11 @@ def save_video(tmp_folder_path, song, outname):
 	clip.write_videofile(outname + ".mp4", audio_codec='aac')
 
 	# saves thumbnail
-	imsave(outname + ".jpg", files_path[-1])
+	os.rename(files_path[-1], outname+".jpg")
 
 	print("\nCleaning tmp directory\n")
 	if os.path.exists(tmp_folder_path):
 		shutil.rmtree(tmp_folder_path)
 
-	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")
+
+	return upload_file_to_s3(outname + ".mp4", outname+".jpg")
