@@ -57,9 +57,9 @@ def generate_and_save(preview, video_id, resolution, classes, jitter,
 												 pitch_sensitivity,
 												 tempo_sensitivity, smooth_factor)
 
-	frames = generate_images(noise_vectors, class_vectors, resolution,
+	tmp_folder_path = generate_images(video_id, noise_vectors, class_vectors, resolution,
 							 truncation)
 
-	save_video(frames, f"{video_id}.mp3", video_id)
+	save_video(tmp_folder_path, f"{video_id}.mp3", video_id)
 
 	return 'Saved to S3'

@@ -11,6 +11,11 @@ import boto3
 from botocore.exceptions import ClientError
 import logging
 from config import *
+import os
+from os import listdir
+from os.path import isfile, join
+import shutil
+import imageio
 
 
 def model_resolution(resolution):
@@ -318,7 +323,8 @@ def song_analysis(song, classes, jitter, depth, truncation,
 	return noise_vectors, class_vectors
 
 
-def generate_images(noise_vectors, class_vectors, resolution, truncation):
+def generate_images(video_id, noise_vectors, class_vectors, resolution, 
+					truncation):
 	"""
 	Take vectors from song_analysis and generate images
 
@@ -335,7 +341,13 @@ def generate_images(noise_vectors, class_vectors, resolution, truncation):
 	noise_vectors = noise_vectors.to(device)
 	class_vectors = class_vectors.to(device)
 
-	frames = []
+	#adds temp folder
+	tmp_folder_path = os.path.join(os.getcwd(), f"{video_id}_frames")
+
+	if os.path.exists(tmp_folder_path):
+		shutil.rmtree(tmp_folder_path)
+	os.mkdir(tmp_folder_path)
+	counter = 0
 
 	for i in tqdm(range(song_duration())):
 
@@ -360,12 +372,13 @@ def generate_images(noise_vectors, class_vectors, resolution, truncation):
 		# convert to image array and add to frames
 		for out in output_cpu:
 			im = np.array(toimage(out))
-			frames.append(im)
+			imsave(os.path.join(tmp_folder_path, str(counter) + ".jpg"), im)
+			counter=counter + 1
 
 		# empty cuda cache
 		torch.cuda.empty_cache()
 
-	return frames
+	return tmp_folder_path
 
 
 def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"):
@@ -405,27 +418,35 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 		logging.error(e)
 		return "error uploading"
 
-	return
 
-# Save video
+	return 'temp dir cleaned'
 
 
-def save_video(frames, song, outname):
+def save_video(tmp_folder_path, song, outname):
 	"""
 	Input: frames from generating function, and song mp3
 
 	Output: created video in mp4 format, and jpg for thumbnail
 
 	"""
+	files_path = [os.path.join(tmp_folder_path, x)
+				for x in os.listdir(tmp_folder_path) if x.endswith('.jpg')]
+	files_path.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+
 	aud = mpy.AudioFileClip(song, fps=44100)
 	aud.duration = 30
-
+	
 	# creates mp4
-	clip = mpy.ImageSequenceClip(frames, fps=22050 / frame_length)
+	clip = mpy.ImageSequenceClip(files_path, fps=22050 / frame_length)
 	clip = clip.set_audio(aud)
 	clip.write_videofile(outname + ".mp4", audio_codec='aac')
 
 	# saves thumbnail
-	imsave(outname + ".jpg", frames[-1])
+	os.rename(files_path[-1], outname+".jpg")
 
-	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")
+	print("\nCleaning tmp directory\n")
+	if os.path.exists(tmp_folder_path):
+		shutil.rmtree(tmp_folder_path)
+
+
+	return upload_file_to_s3(outname + ".mp4", outname+".jpg")
