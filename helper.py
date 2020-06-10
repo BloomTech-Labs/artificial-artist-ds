@@ -45,8 +45,8 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 
 
 def generate_and_save(preview, video_id, resolution, classes, jitter,
-					  depth, truncation, pitch_sensitivity, tempo_sensitivity,
-					  smooth_factor):
+						depth, truncation, pitch_sensitivity, tempo_sensitivity,
+						smooth_factor):
 
 	song = requests.get(preview)
 
@@ -57,9 +57,7 @@ def generate_and_save(preview, video_id, resolution, classes, jitter,
 												 pitch_sensitivity,
 												 tempo_sensitivity, smooth_factor)
 
-	tmp_folder_path = generate_images(video_id, noise_vectors, class_vectors, resolution,
-							 truncation)
+	tmp_folder_path = generate_images(video_id, noise_vectors, class_vectors, 
+										resolution,truncation)
 
-	save_video(tmp_folder_path, f"{video_id}.mp3", video_id)
-
-	return 'Saved to S3'
+	return save_video(tmp_folder_path, f"{video_id}.mp3", video_id)
