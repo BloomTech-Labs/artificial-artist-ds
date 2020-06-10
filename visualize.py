@@ -12,10 +12,8 @@ from botocore.exceptions import ClientError
 import logging
 from config import *
 import os
-from os import listdir
 from os.path import isfile, join
 import shutil
-import imageio
 
 
 def model_resolution(resolution):
@@ -173,16 +171,22 @@ def normalize_cv(cv2):
 	return cv2
 
 
-def song_analysis(song, classes, jitter, depth, truncation,
-				  pitch_sensitivity, tempo_sensitivity, smooth_factor):
+def song_analysis(song, classes, jitter, depth, truncation,pitch_sensitivity, 
+					tempo_sensitivity, smooth_factor):
 	"""
 	creates the class and noise vectors files
 
 	Inputs:
-			song: path of 30 second mp3 file
-			classes: LIST of classes by index from ImageNet1000 -max 12 classes
+			song: STR; path of 30 second mp3 file
+			classes: LIST; classes by index from ImageNet1000 -max 12 classes
 			jitter: FLOAT 0 to 1
 			depth: FLOAT 0 to 1
+			truncation: FLOAT 0 to 1
+			pitch_sensitivity: INT 1-299
+			tempo_sensitivity: FLOAT 0 to 1
+			smooth_factor: INT > 0
+	Output:
+			noise and class vectors of song based on input variables
 
 	"""
 	# read song: audio waveform and sampling rate saved
@@ -334,6 +338,16 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 	"""
 	Take vectors from song_analysis and generate images
 
+	Inputs: 
+			video_id: STR; used to make unique files, avoids overwriting files
+			noise_vectors: NUMPY ARRAY; formed during song analysis
+			class_vectors: NUMPY ARRAY; formed during song analysis
+			resolution: STR; 128, 256, 512; determines resolution of video
+			truncation: FLOAT 0 to 1; should be same as passed to song analysis
+
+	Output: 
+			tmp_folder_path: points to location of frames on disk
+
 	"""
 	# convert to Tensor
 	noise_vectors = torch.Tensor(np.array(noise_vectors))
@@ -374,7 +388,7 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 		#generates image frames as numpy array
 		output_cpu = output.cpu().data.numpy()
 
-		# convert to image array and add to frames
+		# convert to image array and add to file containing frames
 		for out in output_cpu:
 			im = np.array(toimage(out))
 			imsave(os.path.join(tmp_folder_path, str(counter) + ".jpg"), im)
@@ -387,6 +401,16 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 
 
 def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"):
+	"""
+	Saves mp4 and jpg of created video to S3 Bucket
+
+	inputs:
+			mp4file: STR; location of mp4
+			jpgfile: STR; location of jpgfile
+			bucket_name: STR; S3 bucket name
+			acl: STR; allows certain security settings for file access
+
+	"""
 
 	S3_LOCATION = 'https://{}.s3.amazonaws.com/'.format(bucket_name)
 
@@ -423,19 +447,23 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 		logging.error(e)
 		return "error uploading"
 
-	return 'Finished uploading'
+	return 'Succefully '
 
 
 def save_video(tmp_folder_path, song, outname):
 	"""
-	Input: frames from generating function, and song mp3
+	Input: 
+			tmp_folder_path: STR; path of folder containing images for frames
+			song: STR; location of song
+			outname: STR; desired name of files
 
-	Output: created video in mp4 format, and jpg for thumbnail
+	Output: 
+			creates video in mp4 format, and jpg for thumbnail and calls to save
 
 	"""
 	files_path = [os.path.join(tmp_folder_path, x)
 					for x in os.listdir(tmp_folder_path) if x.endswith('.jpg')]
-					
+
 	files_path.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
 	aud = mpy.AudioFileClip(song, fps=44100)
@@ -449,7 +477,7 @@ def save_video(tmp_folder_path, song, outname):
 	# saves thumbnail
 	os.rename(files_path[-1], outname + ".jpg")
 
-	#cleans temp directory
+	# cleans temp directory
 	if os.path.exists(tmp_folder_path):
 		shutil.rmtree(tmp_folder_path)
 
