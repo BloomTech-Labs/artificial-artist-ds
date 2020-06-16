@@ -2,25 +2,15 @@
 
 You can find the project at www.theartificialartist.com.
 
-## 5️⃣ Contributors
-
-🚫Add contributor info below, make sure add images and edit the social links for each member. Add to or delete these place-holders as needed
-
-|                                       [Jonathan Mendoza](https://github.com/StevenMElliott)                                        |                                       [Steve Elliott](https://github.com/StevenMElliott)                                        |
+## Contributors
+|                                       [Jonathan Mendoza](https://github.com/jonathanmendoza-tx)                                        |                                       [Steve Elliott](https://github.com/StevenMElliott)                                        |
 | :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: |
-|                      [<img src="https://media-exp1.licdn.com/dms/image/C5603AQFajqe4O-dmIQ/profile-displayphoto-shrink_200_200/0?e=1597881600&v=beta&t=XQOdg_jRPm6OMElW0O4vIwauObyK0WyUh6s3TaQLh2E" width = "200" />](https://github.com/)                       |                      [<img src="https://avatars1.githubusercontent.com/u/50522291?s=400&u=a7fbbe3430c3323c4acaf807b5ba093d63718d65&v=4" width = "200" />](https://github.com/)                       |
-|                 [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/)                 |            [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/honda0306)             |
-| [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/jonathan-mendoza88/ |
+|                      [<img src="https://media-exp1.licdn.com/dms/image/C5603AQFajqe4O-dmIQ/profile-displayphoto-shrink_200_200/0?e=1597881600&v=beta&t=XQOdg_jRPm6OMElW0O4vIwauObyK0WyUh6s3TaQLh2E" width = "200" />](https://github.com/jonathanmendoza-tx)                       |                      [<img src="https://avatars1.githubusercontent.com/u/50522291?s=400&u=a7fbbe3430c3323c4acaf807b5ba093d63718d65&v=4" width = "200" />](https://github.com/StevenMElliott)                       |
+|                 [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/jonathanmendoza-tx)                 |            [<img src="https://github.com/favicon.ico" width="15"> ](https://github.com/StevenMElliott)             |
+| [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](www.linkedin.com/in/steven-elliott42) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/jonathan-mendoza88/) |
 
-
-🚫 5️⃣ Optional examples of using images with links for your tech stack, make sure to change these to fit your project
 
 ![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)
-![Typescript](https://img.shields.io/npm/types/typescript.svg?style=flat)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/b5c4db1c-b10d-42c3-b157-3746edd9e81d/deploy-status)](netlify link goes in these parenthesis)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-
-🚫 more info on using badges [here](https://github.com/badges/shields)
 
 ## Project Overview
 
