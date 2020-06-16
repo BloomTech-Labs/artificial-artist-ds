@@ -25,17 +25,17 @@ Artifical Artist is a music visualization platform that use a Generative Adversa
 
 ### Tech Stack
 
-Python
-AWS Elastic Beanstalk
-Docker
-Gunicorn
-Flask
-Librosa
-Pytorch
+Python,
+AWS Elastic Beanstalk,
+Docker,
+Gunicorn,
+Flask,
+Librosa,
+and Pytorch
 
 ### Data Sources
 
-Deezer API
+Deezer API and
 Imagenet
 
 
@@ -81,7 +81,7 @@ These contribution guidelines have been adapted from [this good-Contributing.md-
 
 ## Documentation
 
-See [Backend Documentation](_link to your backend readme here_) for details on the backend of our project.
+See [Backend Documentation](https://github.com/Lambda-School-Labs/artificial-artist-be/blob/master/README.md) for details on the backend of our project.
 
-See [Front End Documentation](_link to your front end readme here_) for details on the front end of our project.
+See [Front End Documentation](https://github.com/Lambda-School-Labs/artificial-artist-fe/blob/master/README.md) for details on the front end of our project.
 
