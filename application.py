@@ -57,9 +57,8 @@ def create_app():
 			smooth_factor = reqs['smooth_factor']
 
 		return check_entry(preview, video_id, resolution, im_group, jitter,
-						   depth, truncation, pitch_sensitivity,
-							   tempo_sensitivity, smooth_factor)
-
+							depth, truncation, pitch_sensitivity,
+							tempo_sensitivity, smooth_factor)
 
 	@application.route('/visualize', methods=['POST'])
 	def visual():

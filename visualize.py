@@ -12,10 +12,9 @@ from botocore.exceptions import ClientError
 import logging
 from config import *
 import os
-from os import listdir
 from os.path import isfile, join
 import shutil
-import imageio
+from PIL import Image
 
 
 def model_resolution(resolution):
@@ -93,7 +92,6 @@ def smooth_rate(smooth_factor):
 	smooths the class vectors to prevent small fluctuations in pitch from causing the frames to go back and forth
 	default 20
 	recommended range: 10 – 30
-	***Possibly change this to a variable.***
 
 	"""
 	if smooth_factor > 1:
@@ -110,11 +108,13 @@ def new_jitters(jitter):
 
 	"""
 	jitters = np.zeros(128)
+
 	for j in range(128):
 		if random.uniform(0, 1) < 0.5:
 			jitters[j] = 1
 		else:
 			jitters[j] = 1 - jitter
+
 	return jitters
 
 
@@ -129,10 +129,11 @@ def new_update_dir(nv2, update_dir, truncation, tempo_sensitivity):
 
 		elif n < -2 * truncation + sensitivity_tempo(tempo_sensitivity):
 			update_dir[ni] = 1
+
 	return update_dir
 
 
-# 
+#
 def smooth(class_vectors, smooth_factor):
 	"""
 	smooth class vectors
@@ -142,6 +143,7 @@ def smooth(class_vectors, smooth_factor):
 		return class_vectors
 
 	class_vectors_terp = []
+
 	for c in range(int(np.floor(len(class_vectors) / smooth_factor) - 1)):
 		ci = c * smooth_factor
 		cva = np.mean(class_vectors[int(ci):int(ci) + smooth_factor], axis=0)
@@ -156,8 +158,11 @@ def smooth(class_vectors, smooth_factor):
 	return np.array(class_vectors_terp)
 
 
-# normalize class vector between 0-1
 def normalize_cv(cv2):
+	"""
+	normalize class vector between 0-1
+
+	"""
 	min_class_val = min(i for i in cv2 if i != 0)
 	for ci, c in enumerate(cv2):
 		if c == 0:
@@ -166,17 +171,23 @@ def normalize_cv(cv2):
 
 	return cv2
 
-# creates the class and noise vectors files
 
-
-def song_analysis(song, classes, jitter, depth, truncation,
-				  pitch_sensitivity, tempo_sensitivity, smooth_factor):
+def song_analysis(song, classes, jitter, depth, truncation,pitch_sensitivity, 
+					tempo_sensitivity, smooth_factor):
 	"""
+	creates the class and noise vectors files
+
 	Inputs:
-			song: path of 30 second mp3 file
-			classes: LIST of classes by index from ImageNet1000 -max 12 classes
+			song: STR; path of 30 second mp3 file
+			classes: LIST; classes by index from ImageNet1000 -max 12 classes
 			jitter: FLOAT 0 to 1
 			depth: FLOAT 0 to 1
+			truncation: FLOAT 0 to 1
+			pitch_sensitivity: INT 1-299
+			tempo_sensitivity: FLOAT 0 to 1
+			smooth_factor: INT > 0
+	Output:
+			noise and class vectors of song based on input variables
 
 	"""
 	# read song: audio waveform and sampling rate saved
@@ -184,7 +195,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 	y, sr = librosa.load(song)
 
 	# create spectrogram
-	spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000, 
+	spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000,
 											hop_length=frame_length)
 
 	# get mean power at each time point
@@ -211,12 +222,10 @@ def song_analysis(song, classes, jitter, depth, truncation,
 	# gets # of classes
 	num_classes = len(classes)
 
-	print('\nGenerating input vectors \n')
-
 	# initialize first class vector
 	cv1 = np.zeros(1000)
-	for pi, p in enumerate(chromasort[:num_classes]):
 
+	for pi, p in enumerate(chromasort[:num_classes]):
 		if num_classes < 12:
 			cv1[classes[pi]] = chroma[p][
 				np.min([np.where(chrow > 0)[0][0] for chrow in chroma])]
@@ -237,6 +246,7 @@ def song_analysis(song, classes, jitter, depth, truncation,
 
 	# initialize the direction of noise vector unit updates
 	update_dir = np.zeros(128)
+
 	for ni, n in enumerate(nv1):
 		if n < 0:
 			update_dir[ni] = 1
@@ -279,17 +289,18 @@ def song_analysis(song, classes, jitter, depth, truncation,
 		nvlast = nv2
 
 		# update the direction of noise units
-		update_dir = new_update_dir(nv2, update_dir, truncation, tempo_sensitivity)
+		update_dir = new_update_dir(nv2, update_dir, truncation, 
+									tempo_sensitivity)
 
 		# get last class vector
 		cv1 = cvlast
 
 		# generate new class vector
 		cv2 = np.zeros(1000)
-		for j in range(num_classes):
 
+		for j in range(num_classes):
 			cv2[classes[j]] = (cvlast[classes[j]] +
-							   ((chroma[chromasort[j]][i]) / (sensitivity_pitch(pitch_sensitivity)))) / (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
+								((chroma[chromasort[j]][i]) / (sensitivity_pitch(pitch_sensitivity)))) / (1 + (1 / ((sensitivity_pitch(pitch_sensitivity)))))
 
 		# if more than 6 classes, normalize new class vector between 0 and 1,
 		# else simply set max class val to 1
@@ -323,10 +334,20 @@ def song_analysis(song, classes, jitter, depth, truncation,
 	return noise_vectors, class_vectors
 
 
-def generate_images(video_id, noise_vectors, class_vectors, resolution, 
+def generate_images(video_id, noise_vectors, class_vectors, resolution,
 					truncation):
 	"""
 	Take vectors from song_analysis and generate images
+
+	Inputs: 
+			video_id: STR; used to make unique files, avoids overwriting files
+			noise_vectors: NUMPY ARRAY; formed during song analysis
+			class_vectors: NUMPY ARRAY; formed during song analysis
+			resolution: STR; 128, 256, 512; determines resolution of video
+			truncation: FLOAT 0 to 1; should be same as passed to song analysis
+
+	Output: 
+			tmp_folder_path: points to location of frames on disk
 
 	"""
 	# convert to Tensor
@@ -341,7 +362,7 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 	noise_vectors = noise_vectors.to(device)
 	class_vectors = class_vectors.to(device)
 
-	#adds temp folder
+	# adds temp folder for saving frames on local disk
 	tmp_folder_path = os.path.join(os.getcwd(), f"{video_id}_frames")
 
 	if os.path.exists(tmp_folder_path):
@@ -365,15 +386,14 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 		with torch.no_grad():
 			output = model(noise_vector, class_vector, truncation)
 
-		# this is bad, why are you using your cpu?
-		# may fail to generate if using cpu :'(
+		#generates image frames as numpy array
 		output_cpu = output.cpu().data.numpy()
 
-		# convert to image array and add to frames
+		# convert to image array and add to file containing frames
 		for out in output_cpu:
 			im = np.array(toimage(out))
-			imsave(os.path.join(tmp_folder_path, str(counter) + ".jpg"), im)
-			counter=counter + 1
+			imsave(os.path.join(tmp_folder_path, str(counter) + ".png"), im)
+			counter = counter + 1
 
 		# empty cuda cache
 		torch.cuda.empty_cache()
@@ -382,6 +402,16 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 
 
 def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"):
+	"""
+	Saves mp4 and jpg of created video to S3 Bucket
+
+	inputs:
+			mp4file: STR; location of mp4
+			jpgfile: STR; location of jpgfile
+			bucket_name: STR; S3 bucket name
+			acl: STR; allows certain security settings for file access
+
+	"""
 
 	S3_LOCATION = 'https://{}.s3.amazonaws.com/'.format(bucket_name)
 
@@ -410,7 +440,7 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 				jpgfile,
 				ExtraArgs={
 					"ACL": acl,
-					"ContentType": "image/jpeg"
+					"ContentType": "image/jpg"
 				}
 			)
 
@@ -418,35 +448,39 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 		logging.error(e)
 		return "error uploading"
 
-
-	return 'temp dir cleaned'
+	return 'Succesfully uploaded files to S3'
 
 
 def save_video(tmp_folder_path, song, outname):
 	"""
-	Input: frames from generating function, and song mp3
+	Input: 
+			tmp_folder_path: STR; path of folder containing images for frames
+			song: STR; location of song
+			outname: STR; desired name of files
 
-	Output: created video in mp4 format, and jpg for thumbnail
+	Output: 
+			creates video in mp4 format, and jpg for thumbnail and calls to save
 
 	"""
 	files_path = [os.path.join(tmp_folder_path, x)
-				for x in os.listdir(tmp_folder_path) if x.endswith('.jpg')]
+					for x in os.listdir(tmp_folder_path) if x.endswith('.png')]
+
 	files_path.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
 	aud = mpy.AudioFileClip(song, fps=44100)
 	aud.duration = 30
-	
+
 	# creates mp4
 	clip = mpy.ImageSequenceClip(files_path, fps=22050 / frame_length)
 	clip = clip.set_audio(aud)
 	clip.write_videofile(outname + ".mp4", audio_codec='aac')
 
 	# saves thumbnail
-	os.rename(files_path[-1], outname+".jpg")
+	thumbnail = Image.open(files_path[-1])
+	thumbnail.save(outname + ".jpg")
 
-	print("\nCleaning tmp directory\n")
+	# cleans temp directory
 	if os.path.exists(tmp_folder_path):
 		shutil.rmtree(tmp_folder_path)
 
-
-	return upload_file_to_s3(outname + ".mp4", outname+".jpg")
+	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")
