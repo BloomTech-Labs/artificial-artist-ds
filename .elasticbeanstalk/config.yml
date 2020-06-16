@@ -1,6 +1,6 @@
 branch-defaults:
   code-cleanup:
-    environment: artificial-artist
+    environment: null
   feature/disksave:
     environment: artificial-artist
   master:

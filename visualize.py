@@ -14,6 +14,7 @@ from config import *
 import os
 from os.path import isfile, join
 import shutil
+from PIL import Image
 
 
 def model_resolution(resolution):
@@ -391,7 +392,7 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 		# convert to image array and add to file containing frames
 		for out in output_cpu:
 			im = np.array(toimage(out))
-			imsave(os.path.join(tmp_folder_path, str(counter) + ".jpg"), im)
+			imsave(os.path.join(tmp_folder_path, str(counter) + ".png"), im)
 			counter = counter + 1
 
 		# empty cuda cache
@@ -439,7 +440,7 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 				jpgfile,
 				ExtraArgs={
 					"ACL": acl,
-					"ContentType": "image/jpeg"
+					"ContentType": "image/jpg"
 				}
 			)
 
@@ -462,7 +463,7 @@ def save_video(tmp_folder_path, song, outname):
 
 	"""
 	files_path = [os.path.join(tmp_folder_path, x)
-					for x in os.listdir(tmp_folder_path) if x.endswith('.jpg')]
+					for x in os.listdir(tmp_folder_path) if x.endswith('.png')]
 
 	files_path.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
@@ -475,7 +476,8 @@ def save_video(tmp_folder_path, song, outname):
 	clip.write_videofile(outname + ".mp4", audio_codec='aac')
 
 	# saves thumbnail
-	os.rename(files_path[-1], outname + ".jpg")
+	thumbnail = Image.open(files_path[-1])
+	thumbnail.save(outname + ".jpg")
 
 	# cleans temp directory
 	if os.path.exists(tmp_folder_path):

@@ -40,19 +40,21 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 		return Response('Accepted', status=202, mimetype='application/json')
 
 	else:
-		return Response(f"{str(url)} not found.", status=404,
+		return Response(f"{str(vis_url)} not found.", status=404,
 						mimetype='application/json')
 
 
-def generate_and_save(preview, video_id, resolution, classes, jitter,
-						depth, truncation, pitch_sensitivity, tempo_sensitivity,
+def generate_and_save(preview, video_id, resolution, classes, jitter, depth, 
+						truncation, pitch_sensitivity, tempo_sensitivity,
 						smooth_factor):
 
 	song = requests.get(preview)
 
-	open(f"{video_id}.mp3", 'wb').write(song.content)
+	song_name = f"{video_id}.mp3"
 
-	noise_vectors, class_vectors = song_analysis(f"{video_id}.mp3", classes,
+	open(song_name, 'wb').write(song.content)
+
+	noise_vectors, class_vectors = song_analysis(song_name, classes,
 												 jitter, depth, truncation,
 												 pitch_sensitivity,
 												 tempo_sensitivity, smooth_factor)
@@ -60,4 +62,4 @@ def generate_and_save(preview, video_id, resolution, classes, jitter,
 	tmp_folder_path = generate_images(video_id, noise_vectors, class_vectors, 
 										resolution,truncation)
 
-	return save_video(tmp_folder_path, f"{video_id}.mp3", video_id)
+	return save_video(tmp_folder_path, song_name, video_id)
