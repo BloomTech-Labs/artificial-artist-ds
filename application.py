@@ -1,4 +1,5 @@
 import os
+import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from helper import check_entry, generate_and_save
@@ -55,9 +56,9 @@ def create_app():
 		if 'smooth_factor' in reqs:
 			smooth_factor = reqs['smooth_factor']
 
-		check_entry(preview, video_id, resolution, im_group, jitter, depth, 
-					truncation, pitch_sensitivity, tempo_sensitivity, 
-					smooth_factor)
+		return check_entry(preview, video_id, resolution, im_group, jitter,
+							depth, truncation, pitch_sensitivity,
+							tempo_sensitivity, smooth_factor)
 
 	@application.route('/visualize', methods=['POST'])
 	def visual():
@@ -65,8 +66,8 @@ def create_app():
 		reqs = request.get_json()
 
 		preview = reqs['preview']
-		video_id = str(reqs['video_id'])
-		resolution = str(reqs['resolution'])
+		video_id = reqs['video_id']
+		resolution = reqs['resolution']
 		classes = reqs['classes']
 		jitter = reqs['jitter']
 		depth = reqs['depth']
@@ -75,8 +76,9 @@ def create_app():
 		tempo_sensitivity = reqs['tempo_sensitivity']
 		smooth_factor = reqs['smooth_factor']
 
-		generate_and_save(preview, video_id, resolution, classes, jitter, depth, 
-							truncation, pitch_sensitivity, tempo_sensitivity,
- 							smooth_factor)
+		return generate_and_save(preview, video_id, resolution, classes,
+								 jitter, depth, truncation,
+								 pitch_sensitivity, tempo_sensitivity,
+								 smooth_factor)
 
 	return application

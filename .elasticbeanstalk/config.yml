@@ -5,10 +5,6 @@ branch-defaults:
     environment: artificial-artist
   master:
     environment: artificial-artist
-environment-defaults:
-  visualizer:
-    branch: null
-    repository: null
 global:
   application_name: artificial-artist-ds
   branch: null
