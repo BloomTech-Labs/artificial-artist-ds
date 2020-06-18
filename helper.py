@@ -1,9 +1,9 @@
 # function to generate and save music video
 import requests
-from visualize import song_analysis, generate_images, save_video
+import random
 from flask import Response
 from image_groups import IMAGE_GROUPS
-import random
+from visualize import song_analysis, generate_images, save_video
 
 
 def choose_classes(im_group):
@@ -14,6 +14,11 @@ def choose_classes(im_group):
 		im_classes = IMAGE_GROUPS[im_group]
 	else:
 		im_classes = random.sample(IMAGE_GROUPS[im_group], 4)
+
+	#extra classes add to enhance visuals so not all images are similar
+	extra_classes = random.sample(list(range(1000)), 2)
+	im_classes.append(extra_classes)
+
 	return im_classes
 
 
@@ -62,4 +67,4 @@ def generate_and_save(preview, video_id, resolution, classes, jitter, depth,
 	tmp_folder_path = generate_images(video_id, noise_vectors, class_vectors, 
 										resolution,truncation)
 
-	return save_video(tmp_folder_path, song_name, video_id)
+	save_video(tmp_folder_path, song_name, video_id)

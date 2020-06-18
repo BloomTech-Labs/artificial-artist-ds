@@ -448,8 +448,6 @@ def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"
 		logging.error(e)
 		return "error uploading"
 
-	return 'Succesfully uploaded files to S3'
-
 
 def save_video(tmp_folder_path, song, outname):
 	"""
@@ -483,4 +481,4 @@ def save_video(tmp_folder_path, song, outname):
 	if os.path.exists(tmp_folder_path):
 		shutil.rmtree(tmp_folder_path)
 
-	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")
+	upload_file_to_s3(outname + ".mp4", outname + ".jpg")
