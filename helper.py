@@ -1,9 +1,18 @@
 # function to generate and save music video
+import os
+from os.path import join
+import shutil
 import requests
-from visualize import song_analysis, generate_images, save_video
-from flask import Response
-from image_groups import IMAGE_GROUPS
 import random
+import boto3
+from botocore.exceptions import ClientError
+import logging
+from flask import Response
+import moviepy.editor as mpy
+from PIL import Image
+from config import *
+from image_groups import IMAGE_GROUPS
+from visualize import song_analysis, generate_images
 
 
 def choose_classes(im_group):
@@ -14,6 +23,9 @@ def choose_classes(im_group):
 		im_classes = IMAGE_GROUPS[im_group]
 	else:
 		im_classes = random.sample(IMAGE_GROUPS[im_group], 4)
+
+	im_classes.append(random.sample(list(range(1000)), 2))
+	
 	return im_classes
 
 
@@ -44,6 +56,91 @@ def check_entry(preview, video_id, resolution, im_group, jitter,
 						mimetype='application/json')
 
 
+def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"):
+	"""
+	Saves mp4 and jpg of created video to S3 Bucket
+
+	inputs:
+			mp4file: STR; location of mp4
+			jpgfile: STR; location of jpgfile
+			bucket_name: STR; S3 bucket name
+			acl: STR; allows certain security settings for file access
+
+	"""
+
+	S3_LOCATION = 'https://{}.s3.amazonaws.com/'.format(bucket_name)
+
+	s3 = boto3.client(
+		"s3",
+		aws_access_key_id=S3_KEY,
+		aws_secret_access_key=S3_SECRET
+	)
+
+	try:
+		with open(mp4file, "rb") as f:
+			s3.upload_fileobj(
+				f,
+				bucket_name,
+				mp4file,
+				ExtraArgs={
+					"ACL": acl,
+					"ContentType": "video/mp4"
+				}
+			)
+
+		with open(jpgfile, "rb") as f:
+			s3.upload_fileobj(
+				f,
+				bucket_name,
+				jpgfile,
+				ExtraArgs={
+					"ACL": acl,
+					"ContentType": "image/jpg"
+				}
+			)
+
+	except ClientError as e:
+		logging.error(e)
+		return "error uploading"
+
+	return 'Succesfully uploaded files to S3'
+
+
+def save_video(tmp_folder_path, song, outname, frame_length = 512):
+	"""
+	Input: 
+			tmp_folder_path: STR; path of folder containing images for frames
+			song: STR; location of song
+			outname: STR; desired name of files
+
+	Output: 
+			creates video in mp4 format, and jpg for thumbnail and calls to save
+
+	"""
+	files_path = [os.path.join(tmp_folder_path, x)
+					for x in os.listdir(tmp_folder_path) if x.endswith('.png')]
+
+	files_path.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+
+	aud = mpy.AudioFileClip(song, fps=44100)
+	aud.duration = 30
+
+	# creates mp4
+	clip = mpy.ImageSequenceClip(files_path, fps=22050 / frame_length)
+	clip = clip.set_audio(aud)
+	clip.write_videofile(outname + ".mp4", audio_codec='aac')
+
+	# saves thumbnail
+	thumbnail = Image.open(files_path[-1])
+	thumbnail.save(outname + ".jpg")
+
+	# cleans temp directory
+	if os.path.exists(tmp_folder_path):
+		shutil.rmtree(tmp_folder_path)
+
+	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")
+
+
 def generate_and_save(preview, video_id, resolution, classes, jitter, depth, 
 						truncation, pitch_sensitivity, tempo_sensitivity,
 						smooth_factor):
@@ -57,9 +154,13 @@ def generate_and_save(preview, video_id, resolution, classes, jitter, depth,
 	noise_vectors, class_vectors = song_analysis(song_name, classes,
 												 jitter, depth, truncation,
 												 pitch_sensitivity,
-												 tempo_sensitivity, smooth_factor)
+												 tempo_sensitivity, 
+												 smooth_factor)
 
 	tmp_folder_path = generate_images(video_id, noise_vectors, class_vectors, 
 										resolution,truncation)
 
 	return save_video(tmp_folder_path, song_name, video_id)
+
+
+

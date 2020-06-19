@@ -1,20 +1,15 @@
+import os
+from os.path import join
+import shutil
 import librosa
 import numpy as np
-import moviepy.editor as mpy
 import random
 import torch
 from scipy.misc import toimage, imsave
 from tqdm import tqdm
-from pytorch_pretrained_biggan import (BigGAN, one_hot_from_names, truncated_noise_sample,
-									   save_as_images, display_in_terminal)
-import boto3
-from botocore.exceptions import ClientError
-import logging
-from config import *
-import os
-from os.path import isfile, join
-import shutil
-from PIL import Image
+from pytorch_pretrained_biggan import (BigGAN, one_hot_from_names, 
+										truncated_noise_sample,
+										save_as_images, display_in_terminal)
 
 
 def model_resolution(resolution):
@@ -222,6 +217,9 @@ def song_analysis(song, classes, jitter, depth, truncation,pitch_sensitivity,
 	# gets # of classes
 	num_classes = len(classes)
 
+	#sorts classes by power so user chosen classes have more weight
+	classes=[classes[s] for s in np.argsort(chromasort[:num_classes])]
+
 	# initialize first class vector
 	cv1 = np.zeros(1000)
 
@@ -399,88 +397,3 @@ def generate_images(video_id, noise_vectors, class_vectors, resolution,
 		torch.cuda.empty_cache()
 
 	return tmp_folder_path
-
-
-def upload_file_to_s3(mp4file, jpgfile, bucket_name=S3_BUCKET, acl="public-read"):
-	"""
-	Saves mp4 and jpg of created video to S3 Bucket
-
-	inputs:
-			mp4file: STR; location of mp4
-			jpgfile: STR; location of jpgfile
-			bucket_name: STR; S3 bucket name
-			acl: STR; allows certain security settings for file access
-
-	"""
-
-	S3_LOCATION = 'https://{}.s3.amazonaws.com/'.format(bucket_name)
-
-	s3 = boto3.client(
-		"s3",
-		aws_access_key_id=S3_KEY,
-		aws_secret_access_key=S3_SECRET
-	)
-
-	try:
-		with open(mp4file, "rb") as f:
-			s3.upload_fileobj(
-				f,
-				bucket_name,
-				mp4file,
-				ExtraArgs={
-					"ACL": acl,
-					"ContentType": "video/mp4"
-				}
-			)
-
-		with open(jpgfile, "rb") as f:
-			s3.upload_fileobj(
-				f,
-				bucket_name,
-				jpgfile,
-				ExtraArgs={
-					"ACL": acl,
-					"ContentType": "image/jpg"
-				}
-			)
-
-	except ClientError as e:
-		logging.error(e)
-		return "error uploading"
-
-	return 'Succesfully uploaded files to S3'
-
-
-def save_video(tmp_folder_path, song, outname):
-	"""
-	Input: 
-			tmp_folder_path: STR; path of folder containing images for frames
-			song: STR; location of song
-			outname: STR; desired name of files
-
-	Output: 
-			creates video in mp4 format, and jpg for thumbnail and calls to save
-
-	"""
-	files_path = [os.path.join(tmp_folder_path, x)
-					for x in os.listdir(tmp_folder_path) if x.endswith('.png')]
-
-	files_path.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
-
-	aud = mpy.AudioFileClip(song, fps=44100)
-	aud.duration = 30
-
-	# creates mp4
-	clip = mpy.ImageSequenceClip(files_path, fps=22050 / frame_length)
-	clip = clip.set_audio(aud)
-	clip.write_videofile(outname + ".mp4", audio_codec='aac')
-
-	# saves thumbnail
-	thumbnail = Image.open(files_path[-1])
-	thumbnail.save(outname + ".jpg")
-
-	# cleans temp directory
-	if os.path.exists(tmp_folder_path):
-		shutil.rmtree(tmp_folder_path)
-
-	return upload_file_to_s3(outname + ".mp4", outname + ".jpg")

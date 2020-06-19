@@ -1,5 +1,4 @@
 import os
-import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from helper import check_entry, generate_and_save
@@ -66,8 +65,8 @@ def create_app():
 		reqs = request.get_json()
 
 		preview = reqs['preview']
-		video_id = reqs['video_id']
-		resolution = reqs['resolution']
+		video_id = str(reqs['video_id'])
+		resolution = str(reqs['resolution'])
 		classes = reqs['classes']
 		jitter = reqs['jitter']
 		depth = reqs['depth']
