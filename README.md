@@ -10,7 +10,7 @@ You can find the project at www.theartificialartist.com.
 | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/jonathan-mendoza88/) | [ <img src="https://static.licdn.com/sc/h/al2o9zrvru7aqj8e1x2rzsrca" width="15"> ](https://www.linkedin.com/in/steven-elliott42/) |
 
 
-![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg)
+![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg) [![Maintainability](https://api.codeclimate.com/v1/badges/e24ad1860cf0dac6572e/maintainability)](https://codeclimate.com/github/Lambda-School-Labs/artificial-artist-ds/maintainability)
 
 ## Project Overview
 
