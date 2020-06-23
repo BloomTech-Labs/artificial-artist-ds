@@ -2,6 +2,24 @@
 
 You can find the project at www.theartificialartist.com.
 
+- [Contributors](#contributors)
+- [Project Overview](#project-overview)
+    - Tech Stack
+    - Data Sources
+    - How to connect to the Data Science API
+- [Getting Started](#getting-started)
+    - Locally
+        - Pre-requisites
+        - Create Docker Image
+- [Contributing](#contributing)
+    - Issue/Bug Request
+    - Feature Requests
+    - Pull Requests
+        - Pull Request Guidelines
+    - Attribution
+- [Documentation](#documentation)
+
+
 ## Contributors
 |                                       [Jonathan Mendoza](https://github.com/jonathanmendoza-tx)                                        |                                       [Steve Elliott](https://github.com/StevenMElliott)                                        |
 | :-----------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------: |
@@ -13,7 +31,6 @@ You can find the project at www.theartificialartist.com.
 ![MIT](https://img.shields.io/packagist/l/doctrine/orm.svg) [![Maintainability](https://api.codeclimate.com/v1/badges/e24ad1860cf0dac6572e/maintainability)](https://codeclimate.com/github/Lambda-School-Labs/artificial-artist-ds/maintainability)
 
 ## Project Overview
-
 
 [Trello Board](https://trello.com/b/48TmCzIE/labs-pt9-artificial-artist)
 
@@ -41,7 +58,41 @@ Imagenet
 
 ### How to connect to the Data Science API
 
-Post request to /entry - which contain "video_id" and "preview" link from Deezer
+Post request to /entry - which contain atleast a "video_id" and "preview" link from Deezer
+
+## Getting Started
+
+### Locally
+
+#### Pre-requisites 
+ - Docker
+ - Git and EB CLI
+ - .env file with VIS_URL specified as 'http://127.0.0.1:5000/visualize'
+ - (optional) .env file with variables: S3_BUCKET, S3_KEY, S3_SECRET_KEY
+
+#### Create Docker Image
+
+ 1) Clone repo for artificial-artist-ds
+ 2) In command line run:
+
+        docker build -t <tag-name> <path of repo>
+        docker run -it -d -p 5000:5000 <image-name(tag)>
+
+ 3) create a post request and send to http://127.0.0.1:5000/entry
+    - Post should include a dictionary with 'params' as first index, and its value will be a dictionary with the keys and values for 'preview' & 'video_id' at a minimum.
+
+    - Example using python:
+
+            import requests
+
+            data = {'params': 
+                    {'video_id': 'name_of_video', 
+                    'preview': 'url to mp3 file here'
+                    }}
+
+            requests.post('http://127.0.0.1:5000/entry', json=data)
+
+
 
 ## Contributing
 
