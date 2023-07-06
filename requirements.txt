@@ -16,7 +16,7 @@ moviepy
 numba==0.43.0
 Pillow
 pytorch_pretrained_biggan
-scipy==1.1.0 
+scipy==1.10.0 
 SoundFile
 torch
 torchvision
